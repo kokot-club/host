@@ -8,7 +8,8 @@ var Language = Language || {
             }
         }, [
             m('option', {value: 'en'}, '🇺🇸 English (Default)'),
-            m('option', {value: 'pl'}, '🇵🇱 Polski')
+            m('option', {value: 'pl'}, '🇵🇱 Polski'),
+            m('option', {value: 'de'}, '🇩🇪 Deutsch')
         ])
     }
 }

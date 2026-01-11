@@ -26,17 +26,19 @@ A stupid simple file hosting app
 git clone --recurse-submodules https://github.com/kokot-club/host
 ```
 
-2. Build
+2. Populate your `.env` file accordingly to `.env.example`
+
+3. Build
 ```sh
 docker build -t kokot-host .
 ```
 
-3. Run
+4. Run
 ```sh
 docker run -p 8484:8484 kokot-host
 ```
 
-4. Visit [localhost:8484](http://localhost:8484/)
+5. Visit [localhost:8484](http://localhost:8484/)
 
 # Reverse proxy (nginx)
 ```nginx

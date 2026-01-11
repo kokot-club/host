@@ -11,7 +11,7 @@ var dashboardTab = localStorage.getItem('tab') || 'home'
 var DashboardTab = DashboardTab || {
     view(vnode) {
         if (dashboardTab == vnode.attrs.tab) {
-            document.title = `kokot.host - ${vnode.attrs.label}`
+            document.title = `kokot host - ${vnode.attrs.label}`
         }
 
         return m('li.sidebar__button', {

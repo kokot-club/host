@@ -178,7 +178,7 @@ def file_edit():
         }), 404
 
     path, filename, expires, mimetype, owner_id, *_ = record
-    if owner_id != user_id or user_level < UserRole.ADMIN.value:
+    if owner_id != user_id or user_level < UserRole.ADMIN:
         return abort(403)
 
     new_filename = request.json.get('new_filename')

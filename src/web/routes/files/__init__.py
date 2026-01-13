@@ -1,6 +1,6 @@
 import os
 import subprocess
-from flask import Blueprint, Response, send_file, request, jsonify, redirect
+from flask import Blueprint, Response, send_file, request, jsonify, redirect, abort
 from mimetypes import guess_type
 from datetime import datetime, timedelta
 from shared.db import DB
@@ -133,22 +133,27 @@ def file_upload():
 def file_delete(uri=None, force=False):
     uri = uri or request.args.get('uri', type=str)
     user_level = get_current_user().role
-    owner_id = get_current_user().uid
+    user_id = get_current_user().uid
 
     with DB.get().cursor() as cursor:
-        cursor.execute(
-            'SELECT path, owner_id, expires FROM files WHERE uri = ?',
-            (uri,)
-        )
-        result = cursor.fetchone()
-        if result and (force or result[1] == owner_id or user_level == UserRole.ADMIN):
-            os.remove(result[0])
-            cursor.execute(
-                'DELETE FROM files WHERE uri = ?',
-                (uri,)
-            )
+        record = get_file_record(uri)
+        if record:
+            path, filename, expires, mimetype, owner_id, *_ = record
 
-            return jsonify({}), 200
+            if force or owner_id== user_id or user_level == UserRole.ADMIN:
+                os.remove(path)
+                cursor.execute(
+                    'DELETE FROM files WHERE uri = ?',
+                    (uri,)
+                )
+
+                return jsonify({
+                    'msg': 'OK'
+                }), 200
+
+        return jsonify({
+            'error': 'File not found or expired'
+        }), 404
         
     return jsonify({
         'error': 'Bad request'
@@ -157,6 +162,9 @@ def file_delete(uri=None, force=False):
 @bp_files.route('/files/edit', methods=['PATCH'])
 @require_access(level=UserRole.USER, api_keys=True)
 def file_edit():
+    user_level = get_current_user().role
+    user_id = get_current_user().uid
+
     target_uri = request.json.get('uri')
     if not target_uri or target_uri == '':
         return jsonify({
@@ -168,6 +176,10 @@ def file_edit():
         return jsonify({
             'error': 'File not found or expired'
         }), 404
+
+    path, filename, expires, mimetype, owner_id, *_ = record
+    if owner_id != user_id or user_level < UserRole.ADMIN.value:
+        return abort(403)
 
     new_filename = request.json.get('new_filename')
     if new_filename:

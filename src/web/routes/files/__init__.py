@@ -140,7 +140,7 @@ def file_delete(uri=None, force=False):
         if record:
             path, filename, expires, mimetype, owner_id, *_ = record
 
-            if force or owner_id== user_id or user_level == UserRole.ADMIN:
+            if force or owner_id == user_id or user_level == UserRole.ADMIN:
                 os.remove(path)
                 cursor.execute(
                     'DELETE FROM files WHERE uri = ?',
@@ -178,7 +178,7 @@ def file_edit():
         }), 404
 
     path, filename, expires, mimetype, owner_id, *_ = record
-    if owner_id != user_id or user_level < UserRole.ADMIN:
+    if owner_id != user_id or user_level.value < UserRole.ADMIN.value:
         return abort(403)
 
     new_filename = request.json.get('new_filename')

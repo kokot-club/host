@@ -70,7 +70,7 @@ def uploads_daily(max_days=7):
 
     with DB.get().cursor() as cursor:
         now = datetime.now().timestamp()
-        for tick in range(max_days - 1, -1, -1):
+        for tick in range(max_days, -1, -1):
             timestamp: float = now - tick * 60 * 60 * 24
             timestamp_str: str = datetime.fromtimestamp(timestamp).strftime('%d.%m.%Y')
 

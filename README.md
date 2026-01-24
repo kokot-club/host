@@ -39,7 +39,7 @@ docker run -p 8484:8484 kokot-host
 ```
 
 5. Visit [localhost:8484](http://localhost:8484/)
-
+ 
 # Reverse proxy (nginx)
 ```nginx
 server {

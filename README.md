@@ -46,7 +46,7 @@ server {
     listen 80;
     server_name files.*;
 
-    locaiton / {
+    location / {
         proxy_set_header X-Host $host;
         proxy_set_header X-Real-Ip $remote_addr;
 

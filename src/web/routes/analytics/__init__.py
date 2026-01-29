@@ -1,8 +1,9 @@
-from flask import Blueprint, request, make_response, redirect, jsonify
+from flask import Blueprint, jsonify
 from datetime import datetime
-from shared.models import UserRole
-from shared.auth import require_access, uid_to_username
-from shared.db import DB
+from web.middleware.auth import require_access
+from web.models.db import DB
+from web.models.user import User
+from web.models.role import UserRole
 
 bp_analytics = Blueprint('analytics', __name__, url_prefix='/analytics')
 
@@ -10,7 +11,7 @@ bp_analytics = Blueprint('analytics', __name__, url_prefix='/analytics')
 @require_access(level=UserRole.USER)
 def userbase_info(max_days=7):
     result = {
-        'latest_user': 0,
+        'latest_user': 'unknown',
         'latest_uid': 0,
         'total_users': 0,
         'history': {
@@ -18,47 +19,40 @@ def userbase_info(max_days=7):
             'data': []
         }
     }
-
     with DB.get().cursor() as cursor:
         now = datetime.now().timestamp()
         for tick in range(max_days, -1, -1):
             timestamp: float = now - tick * 60 * 60 * 24
             timestamp_str: str = datetime.fromtimestamp(timestamp).strftime('%d.%m.%Y')
-
             cursor.execute(
-                'SELECT MAX(id), username FROM users WHERE UNIXEPOCH(join_date)<=?',
+                'SELECT MAX(id) FROM users WHERE UNIXEPOCH(join_date) <= ?',
                 (timestamp,)
             )
             record = cursor.fetchone()
-            if record and all(record):
-                if tick == 0:
-                    result['latest_uid'] = record[0]
-                    result['latest_user'] = uid_to_username(record[0])
-                    result['total_users'] = record[0]
-
-                result['history']['data'].append(record[0])
+            if record and record[0] is not None:
+                user_id = record[0]
+                user = User.from_uid(user_id)
+                if user:
+                    display_name = user.get_display_name()
+                    if tick == 0:
+                        result['latest_uid'] = user_id
+                        result['latest_user'] = display_name
+                        result['total_users'] = user_id
+                    result['history']['data'].append(user_id)
+                else:
+                    result['history']['data'].append(0)
             else:
                 result['history']['data'].append(0)
-
             result['history']['labels'].append(timestamp_str)
-
     return jsonify(result), 200
 
 @bp_analytics.route('/server_storage')
 @require_access(level=UserRole.USER)
 def server_storage():
-    with DB.get().cursor() as cursor:
-        cursor.execute('SELECT SUM(size_mb), COUNT(*) FROM files')
-        restult = cursor.fetchone()
-
-        return jsonify({
-            'used_mb': restult[0],
-            'total_uploads': restult[1]
-        }), 200
-    
     return jsonify({
-        'error': 'Bad request'
-    }), 401
+        'used_mb': sum(u.get_storage_usage_mb() for u in User.get_all()),
+        'total_uploads': sum(len(u.get_uploaded_files()) for u in User.get_all())
+    }), 200
 
 @bp_analytics.route('/daily_uploads')
 @require_access(level=UserRole.USER)

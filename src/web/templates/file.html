@@ -19,20 +19,20 @@
         <meta name="theme-color" content="{{ uploader.get_settings().get('embed_color') }}">
     {% endif %}
 
-    {% if uploader.get_settings().get('embed_sitename') %}
-        <meta property="og:site_name" content="{{ uploader.get_settings().get('embed_sitename') }}">
+    {% if embed_sitename %}
+        <meta property="og:site_name" content="{{ embed_sitename }}">
     {% endif %}
 
-    {% if uploader.get_settings().get('embed_authorname') %}
-        <meta property="og:author" content="{{ uploader.get_settings().get('embed_authorname') }}">
+    {% if embed_authorname %}
+        <meta property="og:author" content="{{ embed_authorname }}">
     {% endif %}
 
-    {% if uploader.get_settings().get('embed_description') %}
-        <meta property="og:description" content="{{ uploader.get_settings().get('embed_description') }}">
+    {% if embed_description%}
+        <meta property="og:description" content="{{ embed_description }}">
     {% endif %}
 
-    {% if uploader.get_settings().get('embed_title') %}
-        <meta property="og:title" content="{{ uploader.get_settings().get('embed_title') }}">
+    {% if embed_title %}
+        <meta property="og:title" content="{{ embed_title }}">
     {% endif %}
 </head>
 <body>

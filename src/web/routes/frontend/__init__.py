@@ -68,7 +68,25 @@ def serve_rich_file(uri):
         file.increment_views()
 
     uploader = User.from_uid(file.owner_id)
-    return render_template('file.html', file=file, uploader=uploader)
+    uploader_settings = uploader.get_settings()
+
+    dynamic_strings = {}
+    placeholders = {
+        r'%date%': file.uploaded_at,
+        r'%size%': file.size_mb,
+        r'%owner%': uploader.get_display_name(),
+        r'%filename%': file.filename
+    }
+
+    for key in ['embed_sitename', 'embed_authorname', 'embed_description', 'embed_title']:
+        text = uploader_settings.get(key)
+        if text:
+            for placeholder, val in placeholders.items():
+                text = text.replace(placeholder, str(val))
+
+            dynamic_strings[key] = text
+
+    return render_template('file.html', file=file, uploader=uploader, **dynamic_strings)
 
 @bp_frontend.app_errorhandler(404)
 def catch_all(_):

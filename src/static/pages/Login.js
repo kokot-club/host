@@ -92,7 +92,7 @@ var Login = Login || {
                                 !this.isLogin ? (() => {
                                     const strength = this.password.length / 32;
                                     const thresholds = [0.25, 0.5, 0.75, 1];
-                                    const colors = thresholds.map(t => strength >= t ? 'green' : 'black');
+                                    const colors = thresholds.map(t => strength >= t ? 'green' : 'crust');
                                     
                                     const getMessage = () => {
                                         if (strength < 0.25) return 'Add more characters';
@@ -102,7 +102,7 @@ var Login = Login || {
                                     };
                                     
                                     return [
-                                        m('.input__password-strength', colors.map(color => m('.strength-indicator', {style: {backgroundColor: color}}))),
+                                        m('.input__password-strength', colors.map(color => m('.strength-indicator', {style: {backgroundColor: `var(--${color})`}}))),
                                         m('small', getMessage())
                                     ];
                                 })() : null

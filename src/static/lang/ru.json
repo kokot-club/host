@@ -102,5 +102,9 @@
     "12 hours": "12 часов",
     "1 day": "1 день",
     "3 days": "3 дня",
-    "(This won't affect existing uploads) Sets the expiration time for web and integration uploads": "(Это не повлияет на уже загруженные файлы) Устанавливает время истечения срока действия для веб и интеграционных загрузок"
+    "(This won't affect existing uploads) Sets the expiration time for web and integration uploads": "(Это не повлияет на уже загруженные файлы) Устанавливает время истечения срока действия для веб и интеграционных загрузок",
+    "Add more characters": "Dodaj więcej znaków",
+    "Your password could be stronger": "Twoje hasło może być lepsze",
+    "Your password is good": "Twoje hasło jest dobre",
+    "Your password is great!": "Twoje hasło jest świetne!"
 }

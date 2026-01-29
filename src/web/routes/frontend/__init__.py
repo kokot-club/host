@@ -11,9 +11,11 @@ from web.models.files import File
 bp_frontend = Blueprint('web', __name__, static_folder=None,
     template_folder=os.path.join(os.getcwd(), 'src', 'web', 'templates'))
 
+CLOUDFLARE_TURNSTILE_SITE = os.environ.get('CLOUDFLARE_TURNSTILE_SITE', '')
+
 @bp_frontend.context_processor
 def inject_globals():
-    return {'current_user': get_current_user()}
+    return {'current_user': get_current_user(), 'turnstile_site_key': CLOUDFLARE_TURNSTILE_SITE}
 
 @bp_frontend.route('/static/<path:target>')
 def serve_static(target):

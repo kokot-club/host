@@ -1,6 +1,4 @@
 var Login = Login || {
-    turnstileToken: '2x00000000000000000000AB',
-
     user: '',
     password: '',
     invite: '',
@@ -103,7 +101,7 @@ var Login = Login || {
                                     
                                     return [
                                         m('.input__password-strength', colors.map(color => m('.strength-indicator', {style: {backgroundColor: `var(--${color})`}}))),
-                                        m('small', getMessage())
+                                        m('small', t(getMessage()))
                                     ];
                                 })() : null
                             ]),
@@ -118,13 +116,13 @@ var Login = Login || {
                                 ]),
                             ])
                         ] : null,
-                        m('.form__input', 'Captcha', [
+                        typeof(CLOUDFLARE_TURNSTILE_SITE) != 'undefined' ? m('.form__input', 'Captcha', [
                             m('.cf-turnstile', {
-                                'data-sitekey': this.turnstileToken,
+                                'data-sitekey': CLOUDFLARE_TURNSTILE_SITE,
                                 'data-size': 'flexible',
                                 'data-theme': 'light'
                             }),
-                        ]),
+                        ]) : null,
                     ]),
                     m('.buttons.grid', [
                         m('button[type="submit"]', {

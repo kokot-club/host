@@ -602,7 +602,7 @@ main {
 }
 
 .login {
-    height: auto;
+    height: min-content;
     max-width: 400px;
     padding: 2rem;
     border-radius: 0.5rem;
@@ -611,9 +611,9 @@ main {
 }
 
 .login__container {
-    display: grid;
+    display: flex;
     justify-content: center;
-    align-content: center;
+    align-items: center;
 }
 
 .login__header, .login__alert {

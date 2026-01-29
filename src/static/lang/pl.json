@@ -102,5 +102,9 @@
     "12 hours": "12 godzin",
     "1 day": "1 dzień",
     "3 days": "3 dni",
-    "(This won't affect existing uploads) Sets the expiration time for web and integration uploads": "(Nie będzie to dotyczyć istniejących plików) Ustawia czas wygaśnięcia plików przesłanych przez stronę oraz integracje"
+    "(This won't affect existing uploads) Sets the expiration time for web and integration uploads": "(Nie będzie to dotyczyć istniejących plików) Ustawia czas wygaśnięcia plików przesłanych przez stronę oraz integracje",
+    "Add more characters": "Dodaj więcej znaków",
+    "Your password could be stronger": "Twoje hasło może być lepsze",
+    "Your password is good": "Twoje hasło jest dobre",
+    "Your password is great!": "Twoje hasło jest świetne!"
 }

@@ -1,6 +1,8 @@
 import os
+from datetime import timedelta
 from pathlib import Path
 from flask import Blueprint, send_from_directory, render_template, abort, redirect, jsonify, send_file, request
+from web.middleware.ratelimit import is_ip_ratelimited
 from web.middleware.auth import get_current_user
 from web.models.user import User
 from web.models.role import UserRole
@@ -59,6 +61,9 @@ def serve_rich_file(uri):
     is_discord = 'discordbot' in request.headers.get('User-Agent', '').lower()
     if is_discord and file.mimetype.startswith('video'):
         return serve_file(file.uri)
+    
+    if not is_ip_ratelimited(timedelta(days=999)):
+        file.increment_views()
 
     uploader = User.from_uid(file.owner_id)
     return render_template('file.html', file=file, uploader=uploader)

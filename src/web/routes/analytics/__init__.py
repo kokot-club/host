@@ -11,7 +11,7 @@ bp_analytics = Blueprint('analytics', __name__, url_prefix='/analytics')
 @require_access(level=UserRole.USER)
 def userbase_info(max_days=7):
     result = {
-        'latest_user': 0,
+        'latest_user': 'unknown',
         'latest_uid': 0,
         'total_users': 0,
         'history': {
@@ -19,34 +19,31 @@ def userbase_info(max_days=7):
             'data': []
         }
     }
-
     with DB.get().cursor() as cursor:
         now = datetime.now().timestamp()
         for tick in range(max_days, -1, -1):
             timestamp: float = now - tick * 60 * 60 * 24
             timestamp_str: str = datetime.fromtimestamp(timestamp).strftime('%d.%m.%Y')
-
             cursor.execute(
-                'SELECT MAX(id), username FROM users WHERE UNIXEPOCH(join_date) <= ?',
+                'SELECT MAX(id) FROM users WHERE UNIXEPOCH(join_date) <= ?',
                 (timestamp,)
             )
             record = cursor.fetchone()
-            if record:
-                user_id, username = record
+            if record and record[0] is not None:
+                user_id = record[0]
                 user = User.from_uid(user_id)
-                display_name = user.get_display_name()
-
-                if tick == 0:
-                    result['latest_uid'] = user_id
-                    result['latest_user'] = display_name
-                    result['total_users'] = user_id
-
-                result['history']['data'].append(user_id)
+                if user:
+                    display_name = user.get_display_name()
+                    if tick == 0:
+                        result['latest_uid'] = user_id
+                        result['latest_user'] = display_name
+                        result['total_users'] = user_id
+                    result['history']['data'].append(user_id)
+                else:
+                    result['history']['data'].append(0)
             else:
                 result['history']['data'].append(0)
-
             result['history']['labels'].append(timestamp_str)
-
     return jsonify(result), 200
 
 @bp_analytics.route('/server_storage')

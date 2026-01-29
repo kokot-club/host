@@ -12,7 +12,6 @@ from web.models.files import File
 bp_files = Blueprint('files', __name__)
 
 MAX_UPLOAD_SIZE_MB = float(os.environ.get('MAX_UPLOAD_SIZE_MB', 80.0))
-STORAGE_PER_USER_MB = float(os.environ.get('STORAGE_PER_USER_MB', 250.0))
 ALLOWED_MIMETYPES = os.environ.get('ALLOWED_MIMETYPES', '')
 ALLOWED_MIMETYPES_INVERSE = int(os.environ.get('ALLOWED_MIMETYPES_INVERSE', 0)) == 1
 
@@ -83,7 +82,7 @@ def file_upload():
 
         if is_exiftool_installed():
             try:
-                subprocess.run(['exiftool', '-all=', '-overwrite_original', file_path])
+                subprocess.run(['exiftool', '-all=', '-overwrite_original', file_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             except BaseException:
                 print('Error running exiftool, metadata is still present')
 

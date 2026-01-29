@@ -9,7 +9,7 @@ def random_string(length=7):
 def api_key(length=60):
     return token_urlsafe(length)
 
-def invite(length=20):
+def invite_key(length=20):
     return random_string(length)
 
 def sxcu_config(api_key):

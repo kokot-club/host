@@ -676,6 +676,19 @@ input:focus {
     border: 1px solid var(--accent);
 }
 
+.input__password-strength {
+    display: flex;
+    width: 100%;
+    height: 8px;
+    gap: 0.25rem;
+}
+
+.strength-indicator {
+    height: 100%;
+    width: 100%;
+    border-radius: 999px;
+}
+
 .dashboard__sidebar {
     overflow: hidden;
     position: sticky;

@@ -10,7 +10,7 @@ class DB:
     def get():
         if not hasattr(DB._local, 'db'):
             DB._local.db = DB()
-            
+
         return DB._local.db
 
     def __init__(self) -> None:
@@ -40,8 +40,8 @@ class DB:
             # settings
             cursor.execute("CREATE TABLE IF NOT EXISTS settings (user_id INTEGER NOT NULL UNIQUE)")
             add_column_if_missing(cursor, 'settings', 'external_css', 'TEXT DEFAULT ""')
-            add_column_if_missing(cursor, 'settings', 'anonymous', 'BOOL DEFAULT 0')
-            add_column_if_missing(cursor, 'settings', 'auto_expire', 'FLOAT DEFAULT 0')
+            add_column_if_missing(cursor, 'settings', 'anonymous', 'BOOL NOT NULL DEFAULT 0')
+            add_column_if_missing(cursor, 'settings', 'auto_expire', 'FLOAT NOT NULL DEFAULT 0')
             add_column_if_missing(cursor, 'settings', 'embed_color', 'VARCHAR(7)')
             add_column_if_missing(cursor, 'settings', 'embed_title', 'VARCHAR(40) DEFAULT ""')
             add_column_if_missing(cursor, 'settings', 'embed_description', 'VARCHAR(200) DEFAULT ""')
@@ -52,6 +52,7 @@ class DB:
 
             # invites
             cursor.execute("CREATE TABLE IF NOT EXISTS invites (hash TEXT PRIMARY KEY NOT NULL)")
+            add_column_if_missing(cursor, 'invites', 'role', 'INTEGER NOT NULL DEFAULT 0')
             add_column_if_missing(cursor, 'invites', 'user_id', 'INTEGER UNIQUE')
 
             # files
@@ -64,7 +65,7 @@ class DB:
             add_column_if_missing(cursor, 'files', 'size_mb', 'FLOAT NOT NULL')
             add_column_if_missing(cursor, 'files', 'mimetype', 'STRING NOT NULL')
             add_column_if_missing(cursor, 'files', 'expires', 'DATETIME')
-            add_column_if_missing(cursor, 'files', 'views', 'INTEGER NOT NULL')
+            add_column_if_missing(cursor, 'files', 'views', 'INTEGER NOT NULL DEFAULT 0')
 
             # folders
             cursor.execute("CREATE TABLE IF NOT EXISTS folders (id INTEGER PRIMARY KEY AUTOINCREMENT)")
@@ -74,7 +75,7 @@ class DB:
             cursor.execute('SELECT 1 FROM invites')
             if not cursor.fetchone():
                 invite = os.environ.get('SETUP_INVITE')
-                self._conn.execute('INSERT INTO invites (hash) VALUES (?)', (invite,))
+                self._conn.execute('INSERT INTO invites (hash, role) VALUES (?, 2)', (invite,))
 
     def connection(self):
         return self._conn

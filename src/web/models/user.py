@@ -1,7 +1,10 @@
+import os
 from werkzeug.security import generate_password_hash, check_password_hash
 from web.models.db import DB
 from web.models.role import UserRole
 from web.models.files import File
+
+STORAGE_PER_USER_MB = float(os.environ.get('STORAGE_PER_USER_MB', 250.0))
 
 class User:
     def __init__(self, uid, username, role, is_api=False):
@@ -99,7 +102,7 @@ class User:
             return '#000000'
 
         def is_url(url_str):
-            if url_str.startswith(('http://', 'https://')):
+            if url_str.startswith(('https://')):
                 return url_str
             
             return ''
@@ -153,6 +156,7 @@ class User:
                 'SELECT api_key FROM users WHERE id = ?',
                 (self.uid,)
             )
+
             result = cursor.fetchone()
             if result:
                 return result[0]
@@ -167,6 +171,7 @@ class User:
                 'SELECT uri FROM files WHERE owner_id = ? AND filename LIKE ? ORDER BY uploaded_at DESC LIMIT ? OFFSET ?',
                 (self.uid, query, max_files, offset)
             )
+
             for (uri,) in cursor.fetchall():
                 file = File.from_uri(uri)
                 if file:
@@ -178,7 +183,32 @@ class User:
         return sum([f.size_mb for f in self.get_uploaded_files()])
 
     def get_storage_space_mb(self):
-        return 10000
+        with DB.get().cursor() as cursor:
+            cursor.execute(
+                'SELECT fixed_storage_mb FROM users WHERE id = ?',
+                (self.uid,)
+            )
+
+            result = cursor.fetchone()
+            if result and all(result):
+                return float(result[0])
+
+        return STORAGE_PER_USER_MB
     
     def get_display_name(self):
+        user_settings = self.get_settings()
+        if user_settings.get('anonymous', False):
+            return '████████'
+
         return self.username
+    
+    def get_join_date(self):
+        with DB.get().cursor() as cursor:
+            cursor.execute(
+                'SELECT join_date FROM users WHERE id = ?',
+                (self.uid,)
+            )
+
+            result = cursor.fetchone()
+            if result:
+                return result[0]

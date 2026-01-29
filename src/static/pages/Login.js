@@ -87,17 +87,37 @@ var Login = Login || {
                                     type: 'password',
                                     placeholder: t('Min. 8 characters'),
                                     autocomplete: 'password'
-                                })
+                                }),
+                                
+                                !this.isLogin ? (() => {
+                                    const strength = this.password.length / 32;
+                                    const thresholds = [0.25, 0.5, 0.75, 1];
+                                    const colors = thresholds.map(t => strength >= t ? 'green' : 'black');
+                                    
+                                    const getMessage = () => {
+                                        if (strength < 0.25) return 'Add more characters';
+                                        if (strength < 0.5) return 'Your password could be stronger';
+                                        if (strength < 0.75) return 'Your password is good';
+                                        return 'Your password is great!';
+                                    };
+                                    
+                                    return [
+                                        m('.input__password-strength', colors.map(color => m('.strength-indicator', {style: {backgroundColor: color}}))),
+                                        m('small', getMessage())
+                                    ];
+                                })() : null
                             ]),
                         ]),
-                        !this.isLogin ? m('.form__control', [
-                            m('label.form__input', t('Invite'), [
-                                m('input', {
-                                    oninput: (e) => {this.invite = e.target.value},
-                                    autocomplete: 'false'
-                                })
-                            ]),
-                        ]) : null,
+                        !this.isLogin ? [
+                            m('.form__control', [
+                                m('label.form__input', t('Invite'), [
+                                    m('input', {
+                                        oninput: (e) => {this.invite = e.target.value},
+                                        autocomplete: 'false'
+                                    })
+                                ]),
+                            ])
+                        ] : null,
                         m('.form__input', 'Captcha', [
                             m('.cf-turnstile', {
                                 'data-sitekey': this.turnstileToken,

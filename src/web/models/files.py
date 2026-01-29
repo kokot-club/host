@@ -14,8 +14,6 @@ class File:
         self.size_mb = size_mb
         self.uploaded_at = uploaded_at
 
-    # cursor.execute('SELECT path, filename, expires, mimetype, owner_id, size_mb, uploaded_at FROM files WHERE uri = ?', (target_key,))
-
     @staticmethod
     def from_uri(uri):
         uri = uri.replace('.gif', '')
@@ -57,18 +55,33 @@ class File:
         if new_filename:
             with DB.get().cursor() as cursor:
                 cursor.execute(
-                    'UPDATE files SET filename=? WHERE uri=?',
+                    'UPDATE files SET filename = ? WHERE uri = ?',
                     (new_filename, self.uri,)
                 )
 
+    def get_views(self):
+        with DB.get().cursor() as cursor:
+            cursor.execute('SELECT views FROM files WHERE uri = ?', (self.uri,))
+
+            result = cursor.fetchone()
+            if result:
+                return result[0]
+
+    def increment_views(self):
+        with DB.get().cursor() as cursor:
+            cursor.execute(
+                'UPDATE files SET views = views + 1 WHERE uri = ?',
+                (self.uri,)
+            )
+
     def get_thumbnail(self):
-        return 'image' in self.mimetype and self.get_url() or '/static/images/no-preview.png'
+        return 'image' in self.mimetype and self.get_url_raw() or '/static/images/no-preview.png'
 
     def get_url(self):
         return f'{get_real_host()}uploads/{self.uri}{self.mimetype.endswith('gif') and '.gif' or ''}'
     
     def get_url_raw(self):
-        return f'{get_real_host()}/files/uploads/{self.uri}{self.mimetype.endswith('gif') and '.gif' or ''}'
+        return f'{get_real_host()}files/uploads/{self.uri}{self.mimetype.endswith('gif') and '.gif' or ''}'
     
     def get_deletion_url(self):
         return f'{get_real_host()}files/delete?uri={self.uri}'

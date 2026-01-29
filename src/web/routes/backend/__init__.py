@@ -1,5 +1,5 @@
 from flask import Blueprint, request, make_response, redirect, jsonify
-from web.utils.generators import random_string
+from web.utils.generators import invite_key
 from web.utils.networking import verify_cloudflare_challenge
 from web.middleware.auth import set_user_cookie, clear_user_cookie, require_access, get_current_user
 from web.models.user import User
@@ -125,7 +125,7 @@ def user_register():
 
 
         # success! lets create an user
-        new_user = User.create(username=username, password=password, role=UserRole.USER.value)
+        new_user = User.create(username=username, password=password, role=user_invite.role)
         user_invite.set_claimed(new_user.uid)
         
         return jsonify({
@@ -176,7 +176,8 @@ def user_settings():
 @bp_backend.route('/admin/generate_invite', methods=['POST'])
 @require_access(level=UserRole.ADMIN)
 def admin_generate_invite():
-    invite = Invite.create(random_string(32))
+    invite = Invite.create(invite_key())
+
     if invite:
         return jsonify({
             'invite': invite.hash_
@@ -185,12 +186,16 @@ def admin_generate_invite():
 @bp_backend.route('/admin/purge_invites', methods=['POST'])
 @require_access(level=UserRole.ADMIN)
 def admin_purge_invites():
-    with DB.get().cursor() as cursor:
-        cursor.execute('DELETE FROM invites WHERE user_id IS NULL')
-    
-        return jsonify({
-            'msg': f'Deleted {cursor.rowcount} invite(s)'
-        }), 200
+    deleted = 0
+
+    for invite in Invite.get_all():
+        if not invite.owner_id:
+            invite.delete()
+            deleted += 1
+
+    return jsonify({
+        'msg': f'Deleted {deleted} invite(s)'
+    }), 200
 
 @bp_backend.route('/admin/list_users', methods=['GET'])
 @require_access(level=UserRole.ADMIN)
@@ -203,7 +208,7 @@ def admin_list_users():
         result['users'].append({
             'id': user.uid,
             'username': user.username,
-            'join_date': 'idk',
+            'join_date': user.get_join_date(),
             'role': user.role
         })
     

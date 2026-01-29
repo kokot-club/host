@@ -70,7 +70,7 @@
                 <p>Unable to generate preview</p>
             {% endif %}
 
-            <p class="file-page__details">{{ file.uploaded_at }} • @{{ uploader.get_display_name() }} • 10 views</p>
+            <p class="file-page__details">{{ file.uploaded_at }} • @{{ uploader.get_display_name() }} • {{ file.get_views() }} view(s)</p>
             <div class="buttons">
                 <a href="{{ file.get_url_raw() }}">
                     <button>Download ({{ file.size_mb }}MB)</button>

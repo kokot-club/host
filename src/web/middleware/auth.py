@@ -30,7 +30,7 @@ def get_current_user() -> User | None:
                 cursor.execute('SELECT id, username, role FROM users WHERE api_key = ?', (api_key,))
                 result = cursor.fetchone()
                 if result:
-                    uid, _ = result
+                    uid, *_ = result
 
                     user = User.from_uid(uid)
                     if user:
@@ -41,17 +41,13 @@ def get_current_user() -> User | None:
 
         return None
 
-    try:
-        user_data = serializer.loads(auth_cookie)
-        if user_data:
-            user_uid = user_data.get('uid')
-            if user_uid:
-                return User.from_uid(user_uid)
-        
-        return None
-    except Exception:
-        # invalid cookie
-        return None
+    user_data = serializer.loads(auth_cookie)
+    if user_data:
+        user_uid = user_data.get('uid')
+        if user_uid:
+            return User.from_uid(user_uid)
+    
+    return None
     
 def user_has_access(level):
     user = get_current_user()

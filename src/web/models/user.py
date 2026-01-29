@@ -24,7 +24,7 @@ class User:
             cursor.execute(
                 'INSERT INTO settings (user_id) VALUES (?)',
                 (new_user_id,)
-            ),
+            )
     
             return User(uid=new_user_id, username=username, role=role)
     
@@ -45,7 +45,7 @@ class User:
             cursor.execute(
                 'SELECT username, role FROM users WHERE id = ?',
                 (uid,)
-            ),
+            )
 
             result = cursor.fetchone()
             if result:
@@ -58,7 +58,7 @@ class User:
             cursor.execute(
                 'SELECT id, role FROM users WHERE username = ?',
                 (username.lower(),)
-            ),
+            )
 
             result = cursor.fetchone()
             if result:
@@ -124,20 +124,20 @@ class User:
                 set_clauses.append(f'{key} = ?')
                 values.append(transform(settings_data[key]))
 
-                if not set_clauses:
-                    return
+        if not set_clauses:
+            return
 
-                values.append(self.uid)
+        values.append(self.uid)
 
-                with DB.get().cursor() as cursor:
-                    cursor.execute(
-                        f"""
-                        UPDATE settings
-                        SET {', '.join(set_clauses)}
-                        WHERE user_id = ?
-                        """,
-                        values
-                    )
+        with DB.get().cursor() as cursor:
+            cursor.execute(
+                f'''
+                UPDATE settings
+                SET {', '.join(set_clauses)}
+                WHERE user_id = ?
+                ''',
+                values
+            )
 
     def set_api_key(self, api_key):
         with DB.get().cursor() as cursor:

@@ -1,16 +1,17 @@
 import sqlite3
 import os
+import threading
 from contextlib import contextmanager
 
 class DB:
-    _db = None
+    _local = threading.local()
 
     @staticmethod
     def get():
-        if not DB._db:
-            DB._db = DB()
-
-        return DB._db
+        if not hasattr(DB._local, 'db'):
+            DB._local.db = DB()
+            
+        return DB._local.db
 
     def __init__(self) -> None:
         os.makedirs(os.path.join(os.getcwd(), 'db'), exist_ok=True)

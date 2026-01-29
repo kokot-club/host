@@ -63,6 +63,7 @@ class DB:
             add_column_if_missing(cursor, 'files', 'size_mb', 'FLOAT NOT NULL')
             add_column_if_missing(cursor, 'files', 'mimetype', 'STRING NOT NULL')
             add_column_if_missing(cursor, 'files', 'expires', 'DATETIME')
+            add_column_if_missing(cursor, 'files', 'views', 'INTEGER NOT NULL')
 
             # folders
             cursor.execute("CREATE TABLE IF NOT EXISTS folders (id INTEGER PRIMARY KEY AUTOINCREMENT)")

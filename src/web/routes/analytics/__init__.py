@@ -1,8 +1,9 @@
-from flask import Blueprint, request, make_response, redirect, jsonify
+from flask import Blueprint, jsonify
 from datetime import datetime
-from shared.models import UserRole
-from shared.auth import require_access, uid_to_username
-from shared.db import DB
+from web.middleware.auth import require_access
+from web.models.db import DB
+from web.models.user import User
+from web.models.role import UserRole
 
 bp_analytics = Blueprint('analytics', __name__, url_prefix='/analytics')
 
@@ -26,17 +27,21 @@ def userbase_info(max_days=7):
             timestamp_str: str = datetime.fromtimestamp(timestamp).strftime('%d.%m.%Y')
 
             cursor.execute(
-                'SELECT MAX(id), username FROM users WHERE UNIXEPOCH(join_date)<=?',
+                'SELECT MAX(id), username FROM users WHERE UNIXEPOCH(join_date) <= ?',
                 (timestamp,)
             )
             record = cursor.fetchone()
-            if record and all(record):
-                if tick == 0:
-                    result['latest_uid'] = record[0]
-                    result['latest_user'] = uid_to_username(record[0])
-                    result['total_users'] = record[0]
+            if record:
+                user_id, username = record
+                user = User.from_uid(user_id)
+                display_name = user.get_display_name()
 
-                result['history']['data'].append(record[0])
+                if tick == 0:
+                    result['latest_uid'] = user_id
+                    result['latest_user'] = display_name
+                    result['total_users'] = user_id
+
+                result['history']['data'].append(user_id)
             else:
                 result['history']['data'].append(0)
 
@@ -47,18 +52,10 @@ def userbase_info(max_days=7):
 @bp_analytics.route('/server_storage')
 @require_access(level=UserRole.USER)
 def server_storage():
-    with DB.get().cursor() as cursor:
-        cursor.execute('SELECT SUM(size_mb), COUNT(*) FROM files')
-        restult = cursor.fetchone()
-
-        return jsonify({
-            'used_mb': restult[0],
-            'total_uploads': restult[1]
-        }), 200
-    
     return jsonify({
-        'error': 'Bad request'
-    }), 401
+        'used_mb': sum(u.get_storage_usage_mb() for u in User.get_all()),
+        'total_uploads': sum(len(u.get_uploaded_files()) for u in User.get_all())
+    }), 200
 
 @bp_analytics.route('/daily_uploads')
 @require_access(level=UserRole.USER)

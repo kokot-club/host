@@ -13,17 +13,25 @@
 
     <script src="/static/components/Language.js"></script>
     <script src="/static/components/Theme.js"></script>
-    <script src="/static/components/admin/Admin.js"></script>
-    <script src="/static/components/user/Files.js"></script>
-    <script src="/static/components/user/Integrations.js"></script>
-    <script src="/static/components/user/Settings.js"></script>
-    <script src="/static/components/user/Uploader.js"></script>
-    <script src="/static/components/user/Home.js"></script>
+
+    {% if current_user and current_user.role >= 0 %}
+        <script src="/static/components/user/Files.js"></script>
+        <script src="/static/components/user/Integrations.js"></script>
+        <script src="/static/components/user/Settings.js"></script>
+        <script src="/static/components/user/Uploader.js"></script>
+        <script src="/static/components/user/Home.js"></script>
+
+        {% if current_user.role >= 1 %}
+            <script src="/static/components/admin/Admin.js"></script>
+        {% endif %}
+
+        <script src="/static/pages/user/Dashboard.js"></script>
+    {% endif %}
+
     <script src="/static/pages/Login.js"></script>
     <script src="/static/pages/Error.js"></script>
-    <script src="/static/pages/user/Dashboard.js"></script>
 </head>
 <body>
-    <script src="/static/js/App.js"></script>
+    {% block content %}<script src="/static/js/App.js"></script>{% endblock %}
 </body>
 </html>

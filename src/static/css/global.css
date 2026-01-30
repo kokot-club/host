@@ -604,6 +604,7 @@ main {
 .login {
     height: min-content;
     max-width: 400px;
+    margin: 1rem;
     padding: 2rem;
     border-radius: 0.5rem;
     border: 1px solid var(--crust);

@@ -59,7 +59,7 @@ class User:
     def from_username(username):
         with DB.get().cursor() as cursor:
             cursor.execute(
-                'SELECT id, role FROM users WHERE username = LOWER(?)',
+                'SELECT id, role FROM users WHERE LOWER(username) = ?',
                 (username.lower(),)
             )
 

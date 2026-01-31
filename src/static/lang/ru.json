@@ -133,5 +133,6 @@
     "Confirm your password": "Potwierdź swoje hasło",
     "Change": "Zmień",
     "Account info": "Dane konta",
-    "Change your Username or Password": "Zmień Nazwe użytkownika lub Hasło"
+    "Change your Username or Password": "Zmień Nazwe użytkownika lub Hasło",
+    "You are being ratelimited": "Wysyłasz za dużo żądań"
 }

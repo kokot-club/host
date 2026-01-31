@@ -11,11 +11,19 @@ from web.models.files import File
 bp_frontend = Blueprint('web', __name__, static_folder=None,
     template_folder=os.path.join(os.getcwd(), 'src', 'web', 'templates'))
 
-CLOUDFLARE_TURNSTILE_SITE = os.environ.get('CLOUDFLARE_TURNSTILE_SITE', '')
+CLOUDFLARE_TURNSTILE_SITE = os.environ.get('CLOUDFLARE_TURNSTILE_SITE')
+SUPPORT_HANDLE = os.environ.get('SUPPORT_HANDLE')
+DISCORD_APP_CLIENT_SECRET = os.environ.get('DISCORD_APP_CLIENT_SECRET')
+DISCORD_BOT_TOKEN = os.environ.get('DISCORD_BOT_TOKEN')
 
 @bp_frontend.context_processor
 def inject_globals():
-    return {'current_user': get_current_user(), 'turnstile_site_key': CLOUDFLARE_TURNSTILE_SITE}
+    return {
+        'current_user': get_current_user(),
+        'turnstile_site_key': CLOUDFLARE_TURNSTILE_SITE,
+        'support_handle': SUPPORT_HANDLE,
+        'discord_linking_enabled': (DISCORD_BOT_TOKEN and DISCORD_APP_CLIENT_SECRET) != None
+    }
 
 @bp_frontend.route('/static/<path:target>')
 def serve_static(target):
@@ -37,7 +45,7 @@ def serve_app():
     return render_template('app.html')
 
 @bp_frontend.route('/files/uploads/<uri>')
-def serve_file(uri):
+def files_serve_file(uri):
     file = File.from_uri(uri)
     if not file:
         return jsonify({
@@ -53,7 +61,7 @@ def serve_file(uri):
     return send_file(file_path, download_name=file.filename, as_attachment=True)
 
 @bp_frontend.route('/uploads/<uri>')
-def serve_rich_file(uri):
+def files_serve_rich_file(uri):
     file = File.from_uri(uri)
     if not file:
         return jsonify({
@@ -62,7 +70,7 @@ def serve_rich_file(uri):
 
     is_discord = 'discordbot' in request.headers.get('User-Agent', '').lower()
     if is_discord and file.mimetype.startswith('video'):
-        return serve_file(file.uri)
+        return files_serve_file(file.uri)
     
     if not is_ip_ratelimited(timedelta(days=999)):
         file.increment_views()
@@ -89,9 +97,6 @@ def serve_rich_file(uri):
     return render_template('file.html', file=file, uploader=uploader, **dynamic_strings)
 
 @bp_frontend.app_errorhandler(404)
-def catch_all(_):
-    return redirect('/#!/error')
-
 @bp_frontend.app_errorhandler(500)
 def catch_all(_):
     return redirect('/#!/error')

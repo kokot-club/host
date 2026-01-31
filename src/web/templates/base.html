@@ -14,11 +14,18 @@
     <script src="/static/components/Language.js"></script>
     <script src="/static/components/Theme.js"></script>
 
-    {% if turnstile_site_key %}
-        <script>
-            const CLOUDFLARE_TURNSTILE_SITE = "{{ turnstile_site_key }}"
-        </script>
-    {% endif %}
+    <script>
+        /* eslint-disable */
+        {% if turnstile_site_key %}
+            const CLOUDFLARE_TURNSTILE_SITE = "{{ turnstile_site_key }}";
+        {% endif %}
+        {% if support_handle %}
+            const SUPPORT_HANDLE = "{{ support_handle }}";
+        {% endif %}
+        {% if discord_linking_enabled %}
+            const DISCORD_LINKING_ENABLED = true;
+        {% endif %}
+    </script>
 
     {% if current_user and current_user.role >= 0 %}
         <script src="/static/components/user/Files.js"></script>
@@ -35,6 +42,7 @@
     {% endif %}
 
     <script src="/static/pages/Login.js"></script>
+    <script src="/static/pages/Recovery.js"></script>
     <script src="/static/pages/Error.js"></script>
 </head>
 <body>

@@ -12,7 +12,7 @@ class Invite:
         with DB.get().cursor() as cursor:
             cursor.execute('INSERT INTO invites (hash, user_id, role) VALUES (?, NULL, ?)', (hash_, role,))
 
-            return Invite(hash_=hash_, role=role)
+            return Invite.from_hash(hash_=hash_)
     
     @staticmethod
     def get_all():

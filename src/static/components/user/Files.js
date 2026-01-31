@@ -10,9 +10,9 @@ function deleteFile(uri) {
     return false
 }
 
-function renameFile(uri, new_filename) {
+function renameFile(uri, newFilename) {
     files = files.filter(f => f.uri != uri)
-    m.request({url: `/files/edit`, method: 'PUT', body: {uri: uri, new_filename: new_filename}}).then(data => {
+    m.request({url: `/files/edit`, method: 'PUT', body: {uri: uri, new_filename: newFilename}}).then(data => {
         window.location.reload()
         return true
     })

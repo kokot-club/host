@@ -1,3 +1,94 @@
+
+var PasswordRecoveryModal = PasswordRecoveryModal || {
+    user: '',
+    busy: false,
+    opened: false,
+    errorMsg: '',
+    successMsg: '',
+    openModal() {
+        this.opened = true
+        turnstile.reset('.cf-turnstile#turnstile--recovery')
+    },
+    onsubmit(e) {
+        e.preventDefault()
+        this.busy = true
+
+        var challengeToken = ''
+        const challengeField = document.querySelector('#turnstile--recovery [name="cf-turnstile-response"]')
+        if (challengeField) {
+            challengeToken = challengeField.value
+        }
+
+        const formData = new FormData()
+        formData.append('user', this.user)
+        formData.append('challenge', challengeToken)
+
+        m.request({
+            method: 'POST',
+            url: '/api/user/trigger_recovery',
+            body: formData
+        })
+        .then(data => {
+            this.successMsg = data.msg
+            this.errorMsg = null
+            this.busy = false
+        })
+        .catch(err => {
+            this.errorMsg = err.response.error
+            this.busy = false
+        }).finally(() => {
+            turnstile.reset('.cf-turnstile#turnstile--recovery')
+        })
+    },
+    view() {
+        return m('.dialog', {
+            style: `display: ${this.opened ? 'inherit' : 'none'}`
+        }, [
+            m('.dialog__body', {
+                style: 'width: 500px'
+            }, [
+                m('.dialog__nav', [
+                    m('.dialog__title', t('Password recovery')),
+                ]),
+                m('.alert', [
+                    t('Important: You must link your Discord account and allow DMs from our server to receive the recovery link')
+                ]),
+                m('form', {onsubmit: e => this.onsubmit(e)}, [
+                    m('fieldset', [
+                        m('.form__control', [
+                            m('label.form__input', t('Username'), [
+                                m('input', {
+                                    oninput: (e) => {this.user = e.target.value},
+                                    autocomplete: 'username'
+                                })
+                            ]),
+                        ]),
+                        typeof(CLOUDFLARE_TURNSTILE_SITE) != 'undefined' ? m('.form__input', 'Captcha', [
+                            m('.cf-turnstile#turnstile--recovery', {
+                                'data-sitekey': CLOUDFLARE_TURNSTILE_SITE,
+                                'data-size': 'flexible',
+                                'data-theme': 'light'
+                            }),
+                        ]) : null,
+                    ]),
+                    m('.buttons.grid', [
+                        m('button[type="submit"]', {
+                            disabled: this.busy
+                        }, t('Send')),
+                        m('button.white', {
+                            disabled: this.busy,
+                            onclick: e => {e.preventDefault(); PasswordRecoveryModal.opened = false}
+                        }, t('Cancel'))
+                    ])
+                ]),
+                this.errorMsg || this.successMsg ? m('.alert.login__alert', {
+                    class: this.errorMsg ? 'alert--error' : 'alert--success'
+                }, t(this.errorMsg) || t(this.successMsg)) : null,
+            ])
+        ])
+    }
+}
+
 var Login = Login || {
     user: '',
     password: '',
@@ -19,17 +110,17 @@ var Login = Login || {
         e.preventDefault()
         this.busy = true
 
-        var challenge_token = ''
-        const challenge_field = document.querySelector('[name="cf-turnstile-response"]')
-        if (challenge_field) {
-            challenge_token = challenge_field.value
+        var challengeToken = ''
+        const challengeField = document.querySelector('#turnstile--login [name="cf-turnstile-response"]')
+        if (challengeField) {
+            challengeToken = challengeField.value
         }
 
         const formData = new FormData()
         formData.append('user', this.user)
         formData.append('password', this.password)
         formData.append('invite', this.invite)
-        formData.append('challenge', challenge_token)
+        formData.append('challenge', challengeToken)
 
         m.request({
             method: 'POST',
@@ -51,7 +142,7 @@ var Login = Login || {
             this.errorMsg = err.response.error
             this.busy = false
         }).finally(() => {
-            turnstile.reset('.cf-turnstile')
+            turnstile.reset('.cf-turnstile#turnstile--login')
         })
     },
     view() {
@@ -59,6 +150,7 @@ var Login = Login || {
         document.title = 'Log in'
 
         return m('main.login__container', [
+            m(PasswordRecoveryModal),
             m('article.login', [
                 m('hgroup.login__header', [
                     m('h1.login__title', t('Log in')),
@@ -103,7 +195,9 @@ var Login = Login || {
                                         m('.input__password-strength', colors.map(color => m('.strength-indicator', {style: {backgroundColor: `var(--${color})`}}))),
                                         m('small', t(getMessage()))
                                     ];
-                                })() : null
+                                })() : m('small.link', {
+                                    onclick: e => {PasswordRecoveryModal.openModal()}
+                                }, t('Forgot your password?'))
                             ]),
                         ]),
                         !this.isLogin ? [
@@ -117,7 +211,7 @@ var Login = Login || {
                             ])
                         ] : null,
                         typeof(CLOUDFLARE_TURNSTILE_SITE) != 'undefined' ? m('.form__input', 'Captcha', [
-                            m('.cf-turnstile', {
+                            m('.cf-turnstile#turnstile--login', {
                                 'data-sitekey': CLOUDFLARE_TURNSTILE_SITE,
                                 'data-size': 'flexible',
                                 'data-theme': 'light'
@@ -130,7 +224,7 @@ var Login = Login || {
                         }, this.isLogin ? t('Log in') : t('Register'))
                     ]),
                     m('p', [
-                        m('span', t('Help'), ': @nulare • '),
+                        m('span', typeof(SUPPORT_HANDLE) != 'undefined' ? `${t('Help')}: @${SUPPORT_HANDLE} • ` : ''),
                         m('a.link', {onclick: () => {
                             this.isLogin = !this.isLogin
                         }}, this.isLogin ? t('Looking to register?') : t('Log in'))

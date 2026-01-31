@@ -1,5 +1,7 @@
 import os
+from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
+from web.utils.generators import recovery_code
 from web.models.db import DB
 from web.models.role import UserRole
 from web.models.files import File
@@ -29,7 +31,7 @@ class User:
                 (new_user_id,)
             )
     
-            return User(uid=new_user_id, username=username, role=role)
+            return User.from_uid(new_user_id)
     
     @staticmethod
     def get_all():
@@ -59,14 +61,13 @@ class User:
     def from_username(username):
         with DB.get().cursor() as cursor:
             cursor.execute(
-                'SELECT id, role FROM users WHERE LOWER(username) = ?',
+                'SELECT id FROM users WHERE LOWER(username) = ?',
                 (username.lower(),)
             )
 
             result = cursor.fetchone()
             if result:
-                uid, role = result
-                return User(uid=uid, username=username, role=role)
+                return User.from_uid(result[0])
             
     def password_matches_hash(self, password):
         with DB.get().cursor() as cursor:
@@ -79,6 +80,87 @@ class User:
             if result:
                 password_hash = result[0]
                 return check_password_hash(password_hash, password)
+
+    def set_username(self, username):
+        with DB.get().cursor() as cursor:
+            cursor.execute('UPDATE users SET username = ? WHERE id = ?', (username, self.uid))
+            if cursor.rowcount > 0:
+                return True
+            
+        return False
+
+    def set_password(self, password):
+        password_hash = generate_password_hash(password)
+
+        with DB.get().cursor() as cursor:
+            cursor.execute('UPDATE users SET password = ? WHERE id = ?', (password_hash, self.uid))
+            if cursor.rowcount > 0:
+                return True
+            
+        return False
+
+    def get_recovery_code(self):
+        with DB.get().cursor() as cursor:
+            cursor.execute(
+                'SELECT password_recovery_code, password_recovery_code_created_at FROM users WHERE id = ?',
+                (self.uid,)
+            )
+
+            result = cursor.fetchone()
+            if result and all(result):
+                password_recovery_code, password_recovery_code_created_at = result
+
+                # this code should only last 20 minutes
+                if datetime.strptime(password_recovery_code_created_at, '%Y-%m-%d %H:%M:%S') + timedelta(minutes=20) > datetime.now():
+                    return password_recovery_code
+            
+        return None
+
+    def create_recovery_code(self):
+        code = recovery_code()
+
+        if code:
+            with DB.get().cursor() as cursor:
+                now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                cursor.execute('UPDATE users SET password_recovery_code = ?, password_recovery_code_created_at = ? WHERE id = ?', (code, now, self.uid,))
+                if cursor.rowcount > 0:
+                    return code
+                
+        return None
+    
+    def clear_recovery_code(self):
+        with DB.get().cursor() as cursor:
+            cursor.execute('UPDATE users SET password_recovery_code = NULL WHERE id = ?', (self.uid,))
+            if cursor.rowcount > 0:
+                return True
+            
+        return False
+
+    def get_discord_link(self):
+        with DB.get().cursor() as cursor:
+            cursor.execute('SELECT linked_discord_id, linked_discord_username, linked_discord_headshot FROM users WHERE id = ?', (self.uid,))
+
+            result = cursor.fetchone()
+            if result and all(result):
+                id_, username, headshot = result
+                return {
+                    'id': id_,
+                    'username': username,
+                    'headshot': headshot
+                }
+            
+        return None
+
+    def set_linked_discord(self, discord_id, discord_username, discord_headshot):
+        with DB.get().cursor() as cursor:
+            cursor.execute('UPDATE users SET linked_discord_id = ?, linked_discord_username = ?, linked_discord_headshot = ? WHERE id = ?', (discord_id, discord_username, discord_headshot, self.uid))
+            if cursor.rowcount > 0:
+                return True
+            
+        return False
+
+    def unlink_discord(self):
+        pass
 
     def get_settings(self):
         with DB.get().cursor() as cursor:
@@ -212,3 +294,5 @@ class User:
             result = cursor.fetchone()
             if result:
                 return result[0]
+            
+        return None

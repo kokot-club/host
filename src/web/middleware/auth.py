@@ -1,5 +1,5 @@
 import os
-from flask import request, abort, make_response, redirect
+from flask import request, jsonify, make_response, redirect
 from itsdangerous import URLSafeSerializer
 from functools import wraps
 from datetime import datetime, timedelta
@@ -14,11 +14,11 @@ if not SECRET:
 serializer = URLSafeSerializer(SECRET)
 
 def set_user_cookie(user_data, response): 
-    response.set_cookie('auth', serializer.dumps(user_data), httponly=False, secure=True, samesite='Strict', expires=datetime.now() + timedelta(days=30))
+    response.set_cookie('auth', serializer.dumps(user_data), httponly=False, secure=True, samesite='Lax', expires=datetime.now() + timedelta(days=30))
     return response
 
 def clear_user_cookie(response):
-    response.delete_cookie('auth', httponly=False, secure=True, samesite='Strict')
+    response.delete_cookie('auth', httponly=False, secure=True, samesite='Lax')
     return response
 
 def get_current_user() -> User | None:
@@ -66,7 +66,9 @@ def require_access(level: UserRole, api_keys=False):
                 return clear_user_cookie(make_response(redirect('/'), 403))
 
             if (not user or user.role is None or user.role < level.value or (user.is_api and not api_keys)):
-                return abort(403)
+                return jsonify({
+                    'error': 'Not authorized'
+                }), 403
             
             return func(*args, **kwargs)
         return wrapper

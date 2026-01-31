@@ -9,6 +9,9 @@ def random_string(length=7):
 def api_key(length=60):
     return token_urlsafe(length)
 
+def recovery_code(length=70):
+    return token_urlsafe(length)
+
 def invite_key(length=20):
     return random_string(length)
 

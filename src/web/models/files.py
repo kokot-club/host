@@ -41,7 +41,7 @@ class File:
                 (uploader_id, filename, path, uri, size_mb, mimetype, expires)
             )
 
-            return File(uri=uri, path=path, filename=filename, expires=expires, mimetype=mimetype, owner_id=uploader_id, size_mb=size_mb)
+            return File.from_uri(uri=uri)
 
     def delete(self):
         os.remove(self.path)

@@ -52,9 +52,17 @@ var DynamicStringsPopup = DynamicStringsPopup || {
 }
 
 var Settings = Settings || {
+    // meta
     busy: false,
     msg: '',
     errorMsg: '',
+
+    // account linking
+    discordUsername: null,
+    discordHeadshot: null,
+    discordUnlinkConfirm: false,
+
+    // settings
     embed_title: '',
     embed_sitename: '',
     embed_siteurl: '',
@@ -66,6 +74,19 @@ var Settings = Settings || {
     auto_expire: 0,
 
     oncreate() {
+        m.request({
+            method: 'GET',
+            url: '/api/user/discord'
+        })
+        .then(response => {
+            this.discordUsername = response.username || this.discordUsername
+            this.discordHeadshot = response.headshot || this.discordHeadshot
+            m.redraw()
+        })
+        .catch(error => {
+
+        })
+
         m.request({
             method: 'GET',
             url: '/api/user/settings'
@@ -139,6 +160,97 @@ var Settings = Settings || {
                     m('p', t('Stored locally'))
                 ]),
                 m(Language)
+            ]),
+
+            m('hgroup', [
+                m('h1', t('Account settings')),
+                m('p', t('Further secure your account')),
+            ]),
+            m('div', [
+                m('hgroup.settings__text', [
+                    m('h3', t('Account info')),
+                    m('p', t('Change your Username or Password'))
+                ]),
+                m('.buttons', [
+                    m('a', {
+                        href: '/#!/recovery',
+                        target: '_blank',
+                        rel: 'noopener noreferrer'
+                    }, [
+                        m('button.red', t('Change Password'), [
+                            m('.material-symbols-rounded', 'open_in_new')
+                        ])
+                    ])
+                ])
+            ]),
+            m('.alert', (() => {
+                    if (this.discordUsername) {
+                        return [
+                            m('hgroup', [
+                                m('h2', t('Thank you for linking your Discord account!')),
+                            ]),
+                            m('.profile-card', [
+                                m('img.profile-card__headshot', {
+                                    src: this.discordHeadshot
+                                }),
+                                m('h1', this.discordUsername)
+                            ]),
+                            m('.buttons', [
+                                m('button.green.secondary', {
+                                    disabled: true
+                                }, [
+                                    m('.material-symbols-rounded', 'check')
+                                ], t('Linked!')),
+                                m('button.red', {
+                                    onclick: e => {
+                                        if (this.discordUnlinkConfirm) {
+                                            m.request({
+                                                method: 'DELETE',
+                                                url: '/api/user/unlink_discord'
+                                            })
+                                            .then(response => {
+                                                location.reload()
+                                            })
+                                            .catch(error => {
+
+                                            })
+                                        }
+
+                                        this.discordUnlinkConfirm = true
+                                    }
+                                }, this.discordUnlinkConfirm ? t('Are you sure?') : t('Unlink'))
+                            ])
+                        ]
+                    }
+                    
+                    return [
+                        m('hgroup', [
+                            m('h2', t('Link your Discord account!')),
+                            m('p', t('You will receive account alerts and password reset requests straight to your direct messages'))
+                        ]),
+                        m('.buttons', [
+                            m('a', {
+                                href: '/api/user/link_discord'
+                            }, [
+                                m('button.green', [
+                                    m('.material-symbols-rounded', 'link_2')
+                                ], t('Link now'))
+                            ])
+                        ])
+                    ]
+                })()),
+            m('.grid', [
+                m('hgroup.settings__text', [
+                    m('h3', t('Anonymous mode')),
+                    m('p', t('Your name will not be displayed anywhere on the site'))
+                ]),
+                m('select', {
+                    value: String(Boolean(this.anonymous)),
+                    onchange: e => this.anonymous = e.target.value == 'true'
+                }, [
+                    m('option', {value: 'true'}, t('Yes')),
+                    m('option', {value: 'false'}, t('No'))
+                ])
             ]),
 
             m('hgroup', [
@@ -241,21 +353,8 @@ var Settings = Settings || {
             ]),
 
             m('hgroup', [
-                m('h1', t('Privacy settings')),
-                m('p', t('Utility to stay anonymous')),
-            ]),
-            m('.grid', [
-                m('hgroup.settings__text', [
-                    m('h3', t('Anonymous mode')),
-                    m('p', t('Your name will not be displayed anywhere on the site'))
-                ]),
-                m('select', {
-                    value: String(Boolean(this.anonymous)),
-                    onchange: e => this.anonymous = e.target.value == 'true'
-                }, [
-                    m('option', {value: 'true'}, t('Yes')),
-                    m('option', {value: 'false'}, t('No'))
-                ])
+                m('h1', t('Upload settings')),
+                m('p', t('What happens to your uploads')),
             ]),
             m('.grid', [
                 m('hgroup.settings__text', [

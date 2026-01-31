@@ -1,4 +1,4 @@
-from flask import request, abort
+from flask import request, jsonify
 from datetime import datetime
 from functools import wraps
 from web.utils.networking import get_real_ip
@@ -40,7 +40,9 @@ def ratelimit(duration):
         @wraps(func)
         def wrapper(*args, **kwargs):
             if is_ip_ratelimited(duration):
-                return abort(429)
+                return jsonify({
+                    'error': 'You are being ratelimited'
+                }), 429
             
             return func(*args, **kwargs)
         return wrapper

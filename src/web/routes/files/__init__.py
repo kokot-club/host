@@ -21,7 +21,7 @@ os.makedirs(upload_folder, exist_ok=True)
 @bp_files.route('/files/upload', methods=['POST'])
 @require_access(level=UserRole.USER, api_keys=True)
 def file_upload():
-    uploaded_file = request.files.get('file')
+    uploaded_file = request.files.get('file') or next(iter(request.files.values()), None)
     if not uploaded_file or uploaded_file.filename == '':
         return jsonify({
             'error': 'No file uploaded'

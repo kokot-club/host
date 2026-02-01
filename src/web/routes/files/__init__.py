@@ -21,7 +21,7 @@ os.makedirs(upload_folder, exist_ok=True)
 @bp_files.route('/files/upload', methods=['POST'])
 @require_access(level=UserRole.USER, api_keys=True)
 def file_upload():
-    uploaded_file = request.files.get('file') or next(iter(request.files.values()), None)
+    uploaded_file = request.files.get('file')
     if not uploaded_file or uploaded_file.filename == '':
         return jsonify({
             'error': 'No file uploaded'
@@ -57,11 +57,11 @@ def file_upload():
             'error': f'Unknown mime type'
         }), 400
 
-    allow_upload = False
-    for allowed_mime in ALLOWED_MIMETYPES.split(';'):
-        if allowed_mime and allowed_mime in mimetype:
-            allow_upload = not ALLOWED_MIMETYPES_INVERSE
-            break
+    allow_upload = ALLOWED_MIMETYPES_INVERSE
+    allowed_mimetypes = [m.strip() for m in ALLOWED_MIMETYPES.split(';') if m.strip()]
+
+    if any(mimetype.startswith(m) for m in allowed_mimetypes):
+        allow_upload = not ALLOWED_MIMETYPES_INVERSE
 
     if not allow_upload:
         return jsonify({

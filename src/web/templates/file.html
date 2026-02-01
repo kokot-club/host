@@ -70,7 +70,18 @@
                 <p>Unable to generate preview</p>
             {% endif %}
 
-            <p class="file-page__details">{{ file.uploaded_at }} • @{{ uploader.get_display_name() }} • {{ file.get_views() }} view(s)</p>
+            <ul class="file-page__details">
+                <li>{{ file.uploaded_at }}</li>
+                <li>
+                    @{{ uploader.get_display_name() }}
+                    {% if uploader.get_discord_link() %}
+                    <span title="This user is verified" class="material-symbols-rounded file-page__badge">
+                        verified
+                    </span>
+                    {% endif %}
+                </li>
+                <li>{{ file.get_views() }} view(s)</li>
+            </ul>
             <div class="buttons">
                 <a href="{{ file.get_url_raw() }}">
                     <button>Download ({{ file.size_mb }}MB)</button>

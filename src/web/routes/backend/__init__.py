@@ -350,6 +350,11 @@ def user_link_discord_callback():
                     # make the user join our server
                     Discord.add_user_to_guild(DISCORD_SERVER_ID, linked_user_id, linked_user_token)
 
+                    # and send them a notification
+                    Discord.send_dm(discord_user_id=linked_user_id, content=f"""
+Thank you for linking your Discord account to kokot.host!
+""")
+
     return redirect('/')
 
 @bp_backend.route('/user/unlink_discord', methods=['DELETE'])

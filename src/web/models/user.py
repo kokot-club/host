@@ -113,6 +113,9 @@ class User:
                 # this code should only last 20 minutes
                 if datetime.strptime(password_recovery_code_created_at, '%Y-%m-%d %H:%M:%S') + timedelta(minutes=20) > datetime.now():
                     return password_recovery_code
+                else:
+                    self.clear_recovery_code()
+                    return None
             
         return None
 

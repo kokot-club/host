@@ -259,7 +259,7 @@ button.green.secondary {
 
 .material-symbols-rounded {
     user-select: none;
-    pointer-events: none;
+    pointer-events: stroke;
 }
 
 .uploader {
@@ -488,7 +488,23 @@ td:has(.file__icon) {
 }
 
 .file-page__details {
+    display: flex;
     margin: 0.1rem;
+}
+
+.file-page__details li {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.file-page__details li:not(:first-child)::before {
+    content: "•";
+    margin-inline: 0.25rem;
+}
+
+.file-page__badge {
+    color: var(--green);
 }
 
 .file-page__media {

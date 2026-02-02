@@ -5,7 +5,8 @@ var Settings = Settings || {}
 var Integrations = Integrations || {}
 var Files = Files || {}
 
-var sidebarOpen = true
+const isMobile = window.matchMedia('(max-width: 768px)').matches
+var sidebarOpen = !isMobile
 var dashboardTab = localStorage.getItem('tab') || 'home'
 
 var DashboardTab = DashboardTab || {
@@ -152,7 +153,13 @@ var Dashboard = Dashboard || {
 
                         ])
                     ]),
-                    m('section.dashboard__content', [
+                    m('section.dashboard__content', {
+                        onclick: e => {
+                            if (isMobile) {
+                                sidebarOpen = false
+                            }
+                        }
+                    }, [
                         (() => {
                             switch (dashboardTab) {
                                 case 'admin': return m(Admin)

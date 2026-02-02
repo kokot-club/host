@@ -46,12 +46,19 @@
     --crust: #1d1d1d;
 }
 
+html {
+    overflow: hidden;
+    height: 100%;
+}
+
 body {
     margin: 0;
     font-family: 'Stack Sans Text', sans-serif;
     background-color: var(--base);
     color: var(--text);
     accent-color: var(--accent);
+    overflow: auto;
+    height: 100%;
 }
 
 ::selection {
@@ -828,11 +835,13 @@ article {
         position: fixed !important;
         top: 0;
         left: 0;
-        min-height: calc(100% - 2rem);
-        margin: 0;
-        padding: 1rem;
-        box-shadow: 0px 0px 5px var(--surface0);
-        border-radius: 0;
+        min-height: calc(100% - 3rem);
+        margin: 0.5rem;
+        box-shadow: 0px 0px 0 100vw #0a0a0ad0;
+    }
+
+    .dashboard__sidebar--collapsed {
+        box-shadow: none;
     }
 }
 

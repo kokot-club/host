@@ -2,6 +2,8 @@
 
 A stupid simple file hosting app
 
+[![Crowdin](https://badges.crowdin.net/kokot-host/localized.svg)](https://crowdin.com/project/kokot-host)
+
 ### Features
 - Modern UI, including user dashboard and an admin panel
 - Multiple languages support
@@ -10,9 +12,10 @@ A stupid simple file hosting app
 - Integrations with screen capture tools (ShareX)
 - Rich file displays (Sound, Text, Video)
 - Cloudflare Turnstile support
-- Upload metadata removal
+- Upload metadata removal (exiftool)
 - Anonymous mode
 - Temporary uploads
+- Discord account linking (allows password recovery)
 
 ### Powered by
 - Flask

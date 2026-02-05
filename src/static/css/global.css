@@ -46,11 +46,6 @@
     --crust: #1d1d1d;
 }
 
-html {
-    overflow: hidden;
-    height: 100%;
-}
-
 body {
     margin: 0;
     font-family: 'Stack Sans Text', sans-serif;
@@ -796,6 +791,11 @@ article {
 }
 
 @media screen and (max-width: 768px) {
+    html {
+        overflow: hidden;
+        height: 100%;
+    }
+
     #mobileMenu {
         display: initial;
     }

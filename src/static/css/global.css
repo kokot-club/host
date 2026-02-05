@@ -791,11 +791,6 @@ article {
 }
 
 @media screen and (max-width: 768px) {
-    html {
-        overflow: hidden;
-        height: 100%;
-    }
-
     #mobileMenu {
         display: initial;
     }

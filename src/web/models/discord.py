@@ -18,7 +18,7 @@ class Discord:
         return {'Authorization': f'Bearer {access_token}'}
 
     @staticmethod
-    def send_dm(discord_user_id, content):
+    def send_dm(discord_user_id, content='', embeds=[]):
         dm = requests.post(
             f'{Discord._api_base}/v10/users/@me/channels',
             headers=Discord._bot_headers(bot_token=DISCORD_BOT_TOKEN),
@@ -32,7 +32,7 @@ class Discord:
         requests.post(
             f'{Discord._api_base}/v10/channels/{channel_id}/messages',
             headers=Discord._bot_headers(bot_token=DISCORD_BOT_TOKEN),
-            json={'content': content}
+            json={'content': content, 'embeds': embeds}
         )
         return True
 

@@ -210,10 +210,13 @@ var Files = Files || {
     loading: false,
     pos: 0,
     query: '',
-    oninit() {
+    oncreate() {
         files = []
         this.loadFiles()
         this.queueFiles()
+    },
+    onremove() {
+        this.dead = true
     },
     queueFiles() {
         if (!this.dead && isAtBottom() && !this.loading) {

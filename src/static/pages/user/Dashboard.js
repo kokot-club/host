@@ -1,3 +1,4 @@
+var Modal = Modal || {}
 var Admin = Admin || {}
 var Home = Home || {}
 var Uploader = Uploader || {}
@@ -20,6 +21,7 @@ var DashboardTab = DashboardTab || {
             onclick: vnode.attrs.tab ? () => {
                 dashboardTab = vnode.attrs.tab
                 localStorage.setItem('tab', vnode.attrs.tab)
+                Modal.closeAll()
             } : null,
             ...vnode.attrs
         }, [
@@ -59,6 +61,7 @@ var Dashboard = Dashboard || {
     },
     view() {
         return [
+            m(Modal),
             m('main.dashboard', [
                 m('aside.dashboard__sidebar', {
                     class: !sidebarOpen ? 'dashboard__sidebar--collapsed' : ''

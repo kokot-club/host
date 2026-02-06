@@ -577,6 +577,29 @@ td:has(.file__icon) {
 .settings__text * {margin: 0;}
 .settings__text p {color: var(--subtext0);}
 
+.settings__save {
+    width: 100%;
+    padding-block: 1rem;
+    padding-bottom: 8rem;
+    bottom: -16rem;
+    left: 0;
+    position: fixed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: linear-gradient(0deg, var(--base) 66%, rgba(255, 255, 255, 0) 100%);
+    transition: bottom 0.25s;
+}
+
+.settings__save--active {
+    bottom: -7rem;
+}
+
+:has(.settings__save--active) .settings {
+    margin-bottom: 4rem;
+}
+
 .sidebar__head {
     margin-block: 0.25rem;
 }
@@ -732,6 +755,7 @@ input:focus {
 }
 
 .dashboard__sidebar {
+    z-index: 99;
     overflow: hidden;
     position: sticky;
     top: 2rem;

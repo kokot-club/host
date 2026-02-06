@@ -1,8 +1,7 @@
 import os
-import requests
-from datetime import timedelta
+from datetime import datetime, timedelta
 from flask import Blueprint, request, make_response, redirect, jsonify
-from web.utils.generators import invite_key
+from web.utils.generators import invite_key, recovery_code
 from web.utils.networking import verify_cloudflare_challenge, get_real_host, get_real_ip
 from web.middleware.ratelimit import ratelimit, is_ip_ratelimited
 from web.middleware.auth import set_user_cookie, clear_user_cookie, require_access, get_current_user
@@ -16,6 +15,8 @@ bp_backend = Blueprint('backend', __name__, url_prefix='/api')
 DISCORD_APP_CLIENT_ID = os.environ.get('DISCORD_APP_CLIENT_ID')
 DISCORD_APP_CLIENT_SECRET = os.environ.get('DISCORD_APP_CLIENT_SECRET')
 DISCORD_SERVER_ID = os.environ.get('DISCORD_SERVER_ID')
+
+account_recovery_codes = {}
 
 @bp_backend.route('/user/login', methods=['POST'])
 def user_login():
@@ -102,15 +103,22 @@ def user_trigger_recovery():
                 'error': 'This user didn\'t link their Discord account'
             }), 402
         
-        recovery_code = user.create_recovery_code() 
-        if recovery_code:
-            Discord.send_dm(discord_user_id=linked_discord.get('id'), content=f"""
-We received a password recovery request for your kokot.host account
-From IP: ||{get_real_ip()}||
-**You may change your password using this link:** ||{get_real_host()}#!/recovery?recovery_code={recovery_code}||
+        user_recovery_code = recovery_code()
+        account_recovery_codes[user_recovery_code] = (user.uid, datetime.now())
 
-**If you did not trigger this request, disregard this message**
-""")
+        if user_recovery_code:
+            Discord.send_dm(discord_user_id=linked_discord.get('id'), embeds=[
+                {
+                    "description": f"We have received a password recovery request for your kokot.host account\n[Reset my password 🡥]({get_real_host()}#!/recovery?recovery_code={user_recovery_code}) (This link is only valid for **10 minutes**)\n\n*Not you? You can disregard this message*",
+                    "color": 1804529,
+                    "fields": [
+                        {
+                            "name": "From IP:",
+                            "value": f"||[{get_real_ip()} 🡥](https://ipinfo.io/{get_real_ip()})||"
+                        }
+                    ]
+                }
+            ])
 
             return jsonify({
                 'msg': 'The recovery link was sent to your linked Discord account'
@@ -123,6 +131,7 @@ From IP: ||{get_real_ip()}||
 @bp_backend.route('/user/recovery', methods=['POST'])
 def user_recovery():
     if request.form:
+        recovery_code = request.form.get('recovery_code')
         password = request.form.get('password')
         password_secondary = request.form.get('password_secondary')
         challenge = request.form.get('challenge')
@@ -140,6 +149,21 @@ def user_recovery():
             return jsonify({
                 'error': 'No password provided'
             }), 400
+
+        user = None
+        if recovery_code and not is_ip_ratelimited(timedelta(minutes=1)):
+            recovery_data = account_recovery_codes.get(recovery_code)
+            if recovery_data:
+                user_id, code_timestamp = recovery_data
+                if code_timestamp + timedelta(minutes=10) > datetime.now():
+                    user = User.from_uid(user_id)
+                else:
+                    account_recovery_codes[recovery_code] = None
+
+        if not user:
+            return jsonify({
+                'error': 'This link doesn\'t exist or has expired'
+            }), 404
         
         if password != password_secondary:
             # passwords dont match
@@ -162,19 +186,7 @@ def user_recovery():
                 'error': 'Password is too long'
             }), 400
         
-        user = get_current_user()
-        if not user and not is_ip_ratelimited(timedelta(minutes=1)):
-            # resetting from recovery code?
-            recovery_code = request.form.get('recovery_code')
-            if recovery_code:
-                user = next((u for u in User.get_all() if u.get_recovery_code() == recovery_code), None)
-
-        if not user:
-            return jsonify({
-                'error': 'This link doesn\'t exist or has expired'
-            }), 404
-        
-        user.clear_recovery_code()
+        account_recovery_codes[recovery_code] = None
         user.set_password(password=password)
     
         return jsonify({
@@ -296,6 +308,107 @@ def user_settings():
         'error': 'Bad request'
     }), 400
 
+@bp_backend.route('/user/change_username', methods=['POST'])
+@require_access(level=UserRole.USER)
+def user_change_username():
+    user = get_current_user()
+
+    if request.form:
+        username = request.form.get('user')
+
+        if not username:
+            # missing form data
+
+            return jsonify({
+                'error': 'No username provided'
+            }), 400
+        
+        if User.from_username(username):
+            # user already exists
+
+            return jsonify({
+                'error': 'Username is already taken'
+            }), 400
+        
+        if not username.isalnum():
+            # username contains special characters
+
+            return jsonify({
+                'error': 'Illegal characters in username'
+            }), 400
+        
+        if len(username) > 20:
+            # username is too long
+
+            return jsonify({
+                'error': 'Username is too long'
+            }), 400
+        
+        user.set_username(username=username)
+        return clear_user_cookie(make_response(jsonify({
+            'msg': 'You have successfully changed your username'
+        }), 200))
+    
+    # invalid request
+    return jsonify({
+        'error': 'Bad request'
+    }), 400
+
+@bp_backend.route('/user/change_password', methods=['POST'])
+@require_access(level=UserRole.USER)
+def user_change_password():
+    user = get_current_user()
+
+    if request.form:
+        password_current = request.form.get('password_current')
+        password = request.form.get('password')
+        password_secondary = request.form.get('password_secondary')
+
+        if not password_current or not password or not password_secondary:
+            # missing form data
+
+            return jsonify({
+                'error': 'No password provided'
+            }), 400
+        
+        if password != password_secondary:
+            # passwords dont match
+
+            return jsonify({
+                'error': 'The passwords don\'t match'
+            }), 400
+
+        if len(password) < 8:
+            # password is too short
+
+            return jsonify({
+                'error': 'Password is too short'
+            }), 400
+        
+        if len(password) > 200:
+            # password is too long
+
+            return jsonify({
+                'error': 'Password is too long'
+            }), 400
+        
+        if not user.password_matches_hash(password_current):
+            # password doesnt match
+
+            return jsonify({
+                'error': 'Password doesn\'t match username'
+            }), 400
+        
+        user.set_password(password=password)
+        return clear_user_cookie(make_response(jsonify({
+            'msg': 'You have successfully changed your password'
+        }), 200))
+    
+    # invalid request
+    return jsonify({
+        'error': 'Bad request'
+    }), 400
+
 @bp_backend.route('/user/discord')
 @require_access(level=UserRole.USER)
 def user_discord():
@@ -351,9 +464,12 @@ def user_link_discord_callback():
                     Discord.add_user_to_guild(DISCORD_SERVER_ID, linked_user_id, linked_user_token)
 
                     # and send them a notification
-                    Discord.send_dm(discord_user_id=linked_user_id, content=f"""
-Thank you for linking your Discord account to kokot.host!
-""")
+                    Discord.send_dm(discord_user_id=linked_user_id, embeds=[
+                        {
+                            "description": "Thank you for linking your Discord account to kokot.host!",
+                            "color": 7586955
+                        }
+                    ])
 
     return redirect('/')
 

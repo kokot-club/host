@@ -1,6 +1,4 @@
 gunicorn
 flask
 requests
-pillow
-qrcode
 python-dotenv

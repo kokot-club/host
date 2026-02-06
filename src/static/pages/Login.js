@@ -1,3 +1,4 @@
+var PasswordInput = PasswordInput || {}
 
 var PasswordRecoveryModal = PasswordRecoveryModal || {
     user: '',
@@ -172,39 +173,26 @@ var Login = Login || {
                         ]),
                         m('.form__control', [
                             m('label.form__input', t('Password'), [
-                                m('input', {
-                                    oninput: (e) => {this.password = e.target.value},
-                                    type: 'password',
-                                    placeholder: t('Min. 8 characters'),
-                                    autocomplete: 'password'
-                                }),
-                                
-                                !this.isLogin ? (() => {
-                                    const strength = this.password.length / 32;
-                                    const thresholds = [0.25, 0.5, 0.75, 1];
-                                    const colors = thresholds.map(t => strength >= t ? 'green' : 'crust');
-                                    
-                                    const getMessage = () => {
-                                        if (strength < 0.25) return 'Add more characters';
-                                        if (strength < 0.5) return 'Your password could be stronger';
-                                        if (strength < 0.75) return 'Your password is good';
-                                        return 'Your password is great!';
-                                    };
-                                    
-                                    return [
-                                        m('.input__password-strength', colors.map(color => m('.strength-indicator', {style: {backgroundColor: `var(--${color})`}}))),
-                                        m('small', t(getMessage()))
-                                    ];
-                                })() : m('small.link', {
-                                    onclick: e => {PasswordRecoveryModal.openModal()}
-                                }, t('Forgot your password?'))
+                                !this.isLogin ? m(PasswordInput, {
+                                    callback: e => {this.password = e.target.value}
+                                }) : [
+                                    m('input', {
+                                        oninput: (e) => {this.password = e.target.value},
+                                        type: 'password',
+                                        placeholder: t('Min. 8 characters'),
+                                        autocomplete: 'password'
+                                    }),
+                                    m('small.link', {
+                                        onclick: e => {PasswordRecoveryModal.openModal()}
+                                    }, t('Forgot your password?'))
+                                ]
                             ]),
                         ]),
                         !this.isLogin ? [
                             m('.form__control', [
                                 m('label.form__input', t('Invite'), [
                                     m('input', {
-                                        oninput: (e) => {this.invite = e.target.value},
+                                        oninput: e => {this.invite = e.target.value},
                                         autocomplete: 'false'
                                     })
                                 ]),

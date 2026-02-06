@@ -1,7 +1,6 @@
 import os
 from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
-from web.utils.generators import recovery_code
 from web.models.db import DB
 from web.models.role import UserRole
 from web.models.files import File
@@ -38,7 +37,7 @@ class User:
         result = []
 
         with DB.get().cursor() as cursor:
-            cursor.execute('SELECT id FROM users')
+            cursor.execute('SELECT id FROM users ORDER BY id ASC')
             for (uid,) in cursor.fetchall():
                 result.append(User.from_uid(uid))
 
@@ -118,26 +117,6 @@ class User:
                     return None
             
         return None
-
-    def create_recovery_code(self):
-        code = recovery_code()
-
-        if code:
-            with DB.get().cursor() as cursor:
-                now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                cursor.execute('UPDATE users SET password_recovery_code = ?, password_recovery_code_created_at = ? WHERE id = ?', (code, now, self.uid,))
-                if cursor.rowcount > 0:
-                    return code
-                
-        return None
-    
-    def clear_recovery_code(self):
-        with DB.get().cursor() as cursor:
-            cursor.execute('UPDATE users SET password_recovery_code = NULL WHERE id = ?', (self.uid,))
-            if cursor.rowcount > 0:
-                return True
-            
-        return False
 
     def get_discord_link(self):
         with DB.get().cursor() as cursor:

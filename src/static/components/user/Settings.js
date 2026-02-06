@@ -1,5 +1,7 @@
+var Modal = Modal || {}
 var Theme = Theme || {}
 var Language = Language || {}
+var PasswordInput = PasswordInput || {}
 
 var DynamicStringsPopup = DynamicStringsPopup || {
     opened: false,
@@ -15,37 +17,7 @@ var DynamicStringsPopup = DynamicStringsPopup || {
                 m('.dialog__nav', [
                     m('h1.dialog__title', t('Available strings')),
                 ]),
-                m('ul', [
-                    m('li', [
-                        m('hgroup', [
-                            m('h3', '%date%'),
-                            m('p', t('Date when the file was uploaded'))
-                        ])
-                    ]),
-                    m('li', [
-                        m('hgroup', [
-                            m('h3', '%size%'),
-                            m('p', t('Total file size represented in megabytes (MB)'))
-                        ])
-                    ]),
-                    m('li', [
-                        m('hgroup', [
-                            m('h3', '%filename%'),
-                            m('p', t('Original file name of the upload'))
-                        ])
-                    ]),
-                    m('li', [
-                        m('hgroup', [
-                            m('h3', '%owner%'),
-                            m('p', t('The user that uploaded the file'))
-                        ])
-                    ])
-                ]),
-                m('.buttons.pills', [
-                    m('button', {
-                        onclick: e => {DynamicStringsPopup.opened = false}
-                    }, t('Cancel'))
-                ])
+                
             ])
         ])
     }
@@ -54,6 +26,7 @@ var DynamicStringsPopup = DynamicStringsPopup || {
 var Settings = Settings || {
     // meta
     busy: false,
+    changed: false,
     msg: '',
     errorMsg: '',
 
@@ -72,6 +45,118 @@ var Settings = Settings || {
     embed_color: '#9ca0b0',
     anonymous: false,
     auto_expire: 0,
+
+    promptUsernameChange() {
+        let user = ''
+        Modal.spawn(t('Change Username'), [
+            m('.alert', t('Note: This action will log you out of your account')),
+            m('form', {
+                onsubmit: e => {
+                    e.preventDefault()
+
+                    const formData = new FormData()
+                    formData.append('user', user)
+
+                    m.request({
+                        method: 'POST',
+                        url: '/api/user/change_username',
+                        body: formData
+                    })
+                    .then(data => {
+                        location.reload()
+                    })
+                    .catch(err => {
+                        errorMsg = err.response.error
+                    })
+                }
+            }, [
+                m('fieldset', [
+                    m('.form__control', [
+                        m('label.form__input', t('New username'), [
+                            m('input', {
+                                oninput: (e) => {user = e.target.value},
+                                autocomplete: 'username',
+                            })
+                        ]),
+                    ])
+                ]),
+                m('.grid.buttons', [
+                    m('button[type="submit"]', t('Change')),
+                    m('button.white', {
+                        onclick: e => {e.preventDefault(); Modal.closeAll()}
+                    }, t('Cancel'))
+                ])
+            ])
+        ], '400px')
+    },
+    promptPasswordChange() {
+        let successMsg
+        let errorMsg
+
+        let password_current = ''
+        let password = ''
+        let password_secondary = ''
+        Modal.spawn(t('Change Password'), [
+            m('form', {
+                onsubmit: e => {
+                    e.preventDefault()
+
+                    const formData = new FormData()
+                    formData.append('password_current', password_current)
+                    formData.append('password', password)
+                    formData.append('password_secondary', password_secondary)
+
+                    m.request({
+                        method: 'POST',
+                        url: '/api/user/change_password',
+                        body: formData
+                    })
+                    .then(data => {
+                        location.reload()
+                    })
+                    .catch(err => {
+                        errorMsg = err.response.error
+                    })
+                }
+            }, [
+                m('.alert', t('Note: This action will log you out of your account')),
+                m('fieldset', [
+                    m('.form__control', [
+                        m('label.form__input', t('Current password'), [
+                            m('input', {
+                                oninput: (e) => {password_current = e.target.value},
+                                type: 'password',
+                                autocomplete: 'password'
+                            })
+                        ]),
+                    ]),
+                    m(PasswordInput, {
+                        title: 'New password',
+                        callback: e => {
+                            password = e.target.value
+                        }
+                    }),
+                    m('.form__control', [
+                        m('label.form__input', t('Confirm your password'), [
+                            m('input', {
+                                oninput: (e) => {password_secondary = e.target.value},
+                                type: 'password',
+                            })
+                        ]),
+                    ])
+                ]),
+                m('.grid.buttons', [
+                    m('button[type="submit"]', t('Change')),
+                    m('button.white', {
+                        onclick: e => {e.preventDefault(); Modal.closeAll()}
+                    }, t('Cancel'))
+                ]),
+                errorMsg || successMsg ? m('.alert.login__alert', {
+                    class: errorMsg ? 'alert--error' : 'alert--success'
+                }, t(errorMsg) || t(successMsg)) : null,
+            ])
+        ], '400px')
+    },
 
     oncreate() {
         m.request({
@@ -131,6 +216,7 @@ var Settings = Settings || {
             body: formData
         })
         .then(() => {
+            this.changed = false
             this.busy = false
             m.redraw()
         })
@@ -139,10 +225,8 @@ var Settings = Settings || {
             m.redraw()
         })
     },
-
     view() {
         return m('.settings', [
-            m(DynamicStringsPopup),
             m('hgroup', [
                 m('h1', t('Website settings')),
                 m('p', t('Theming and user experience')),
@@ -172,73 +256,70 @@ var Settings = Settings || {
                     m('p', t('Change your Username or Password'))
                 ]),
                 m('.buttons', [
-                    m('a', {
-                        href: '/#!/recovery',
-                        target: '_blank',
-                        rel: 'noopener noreferrer'
-                    }, [
-                        m('button.red', t('Change Password'), [
-                            m('.material-symbols-rounded', 'open_in_new')
-                        ])
-                    ])
+                    m('button', {
+                        onclick: e => this.promptUsernameChange()
+                    }, t('Change Username')),
+                    m('button.red', {
+                        onclick: e => this.promptPasswordChange()
+                    }, t('Change Password'))
                 ])
             ]),
             m('.alert', (() => {
-                    if (this.discordUsername) {
-                        return [
-                            m('hgroup', [
-                                m('h2', t('Thank you for linking your Discord account!')),
-                            ]),
-                            m('.profile-card', [
-                                m('img.profile-card__headshot', {
-                                    src: this.discordHeadshot
-                                }),
-                                m('h1', this.discordUsername)
-                            ]),
-                            m('.buttons', [
-                                m('button.green.secondary', {
-                                    disabled: true
-                                }, [
-                                    m('.material-symbols-rounded', 'check')
-                                ], t('Linked!')),
-                                m('button.red', {
-                                    onclick: e => {
-                                        if (this.discordUnlinkConfirm) {
-                                            m.request({
-                                                method: 'DELETE',
-                                                url: '/api/user/unlink_discord'
-                                            })
-                                            .then(response => {
-                                                location.reload()
-                                            })
-                                            .catch(error => {
-
-                                            })
-                                        }
-
-                                        this.discordUnlinkConfirm = true
-                                    }
-                                }, this.discordUnlinkConfirm ? t('Are you sure?') : t('Unlink'))
-                            ])
-                        ]
-                    }
-                    
+                if (this.discordUsername) {
                     return [
                         m('hgroup', [
-                            m('h2', t('Link your Discord account!')),
-                            m('p', t('You will receive account alerts and password reset requests straight to your direct messages'))
+                            m('h2', t('Thank you for linking your Discord account!')),
+                        ]),
+                        m('.profile-card', [
+                            m('img.profile-card__headshot', {
+                                src: this.discordHeadshot
+                            }),
+                            m('h1', this.discordUsername)
                         ]),
                         m('.buttons', [
-                            m('a', {
-                                href: '/api/user/link_discord'
+                            m('button.green.secondary', {
+                                disabled: true
                             }, [
-                                m('button.green', [
-                                    m('.material-symbols-rounded', 'link_2')
-                                ], t('Link now'))
-                            ])
+                                m('.material-symbols-rounded', 'check')
+                            ], t('Linked!')),
+                            m('button.red', {
+                                onclick: e => {
+                                    if (this.discordUnlinkConfirm) {
+                                        m.request({
+                                            method: 'DELETE',
+                                            url: '/api/user/unlink_discord'
+                                        })
+                                        .then(response => {
+                                            location.reload()
+                                        })
+                                        .catch(error => {
+
+                                        })
+                                    }
+
+                                    this.discordUnlinkConfirm = true
+                                }
+                            }, this.discordUnlinkConfirm ? t('Are you sure?') : t('Unlink'))
                         ])
                     ]
-                })()),
+                }
+                
+                return [
+                    m('hgroup', [
+                        m('h2', t('Link your Discord account!')),
+                        m('p', t('You will receive account alerts and password reset requests straight to your direct messages'))
+                    ]),
+                    m('.buttons', [
+                        m('a', {
+                            href: '/api/user/link_discord'
+                        }, [
+                            m('button.green', [
+                                m('.material-symbols-rounded', 'link_2')
+                            ], t('Link now'))
+                        ])
+                    ])
+                ]
+            })()),
             m('.grid', [
                 m('hgroup.settings__text', [
                     m('h3', t('Anonymous mode')),
@@ -246,7 +327,7 @@ var Settings = Settings || {
                 ]),
                 m('select', {
                     value: String(Boolean(this.anonymous)),
-                    onchange: e => this.anonymous = e.target.value == 'true'
+                    onchange: e => {this.changed = true; this.anonymous = e.target.value == 'true'}
                 }, [
                     m('option', {value: 'true'}, t('Yes')),
                     m('option', {value: 'false'}, t('No'))
@@ -260,7 +341,39 @@ var Settings = Settings || {
             ]),
             m('.buttons', [
                 m('button', {
-                    onclick: e => {DynamicStringsPopup.opened = true}
+                    onclick: e => {
+                        Modal.spawn('Dynamic strings', [m('ul', [
+                            m('li', [
+                                m('hgroup', [
+                                    m('h3', '%date%'),
+                                    m('p', t('Date when the file was uploaded'))
+                                ])
+                            ]),
+                            m('li', [
+                                m('hgroup', [
+                                    m('h3', '%size%'),
+                                    m('p', t('Total file size represented in megabytes (MB)'))
+                                ])
+                            ]),
+                            m('li', [
+                                m('hgroup', [
+                                    m('h3', '%filename%'),
+                                    m('p', t('Original file name of the upload'))
+                                ])
+                            ]),
+                            m('li', [
+                                m('hgroup', [
+                                    m('h3', '%owner%'),
+                                    m('p', t('The user that uploaded the file'))
+                                ])
+                            ])
+                        ]),
+                        m('.buttons.pills', [
+                            m('button', {
+                                onclick: e => {Modal.closeAll()}
+                            }, t('Cancel'))
+                        ])])
+                    }
                 }, t('Dynamic strings')),
                 m('button.white', {
                     onclick: () => {
@@ -270,6 +383,7 @@ var Settings = Settings || {
                         this.embed_authorname = ''
                         this.embed_authorurl = ''
                         this.embed_description = ''
+                        this.changed = true
                     }
                 }, t('Clear all fields'))
             ]),
@@ -279,7 +393,7 @@ var Settings = Settings || {
                 ]),
                 m('input', {
                     value: this.embed_title,
-                    onchange: e => this.embed_title = e.target.value,
+                    onchange: e => {this.changed = true; this.embed_title = e.target.value},
                     placeholder: ''
                 })
             ]),
@@ -289,7 +403,7 @@ var Settings = Settings || {
                 ]),
                 m('input', {
                     value: this.embed_sitename,
-                    onchange: e => this.embed_sitename = e.target.value,
+                    onchange: e => {this.changed = true; this.embed_sitename = e.target.value},
                     placeholder: ''
                 })
             ]),
@@ -299,7 +413,7 @@ var Settings = Settings || {
                 ]),
                 m('input', {
                     value: this.embed_siteurl,
-                    onchange: e => this.embed_siteurl = e.target.value,
+                    onchange: e => {this.changed = true; this.embed_siteurl = e.target.value},
                     placeholder: 'https://'
                 })
             ]),
@@ -309,7 +423,7 @@ var Settings = Settings || {
                 ]),
                 m('input', {
                     value: this.embed_authorname,
-                    onchange: e => this.embed_authorname = e.target.value,
+                    onchange: e => {this.changed = true; this.embed_authorname = e.target.value},
                     placeholder: ''
                 })
             ]),
@@ -319,7 +433,7 @@ var Settings = Settings || {
                 ]),
                 m('input', {
                     value: this.embed_authorurl,
-                    onchange: e => this.embed_authorurl = e.target.value,
+                    onchange: e => {this.changed = true; this.embed_authorurl = e.target.value},
                     placeholder: 'https://'
                 })
             ]),
@@ -329,7 +443,7 @@ var Settings = Settings || {
                 ]),
                 m('input', {
                     value: this.embed_description,
-                    onchange: e => this.embed_description = e.target.value,
+                    onchange: e => {this.changed = true; this.embed_description = e.target.value},
                     placeholder: ''
                 })
             ]),
@@ -342,11 +456,11 @@ var Settings = Settings || {
                         style: 'height: 100%; width: 100%',
                         type: 'color',
                         value: this.embed_color,
-                        onchange: e => this.embed_color = e.target.value
+                        onchange: e => {this.changed = true; this.embed_color = e.target.value}
                     }),
                     m('input', {
                         value: this.embed_color,
-                        onchange: e => this.embed_color = e.target.value,
+                        onchange: e => {this.changed = true; this.embed_color = e.target.value},
                         placeholder: '#ff0000'
                     })
                 ])
@@ -363,7 +477,7 @@ var Settings = Settings || {
                 ]),
                 m('select', {
                     value: this.auto_expire,
-                    onchange: e => this.auto_expire = e.target.value
+                    onchange: e => {this.changed = true; this.auto_expire = e.target.value}
                 }, [
                     m('option', {value: 0}, t('Never')),
                     m('option', {value: 3600}, t('1 hour')),
@@ -373,7 +487,8 @@ var Settings = Settings || {
                 ])
             ]),
 
-            m('.buttons.grid', [
+            m('.settings__save' + (this.changed ? '.settings__save--active' : ''), [
+                m('p', t('You made some changes to your settings')),
                 m('button', {
                     onclick: e => this.onsubmit(e),
                     disabled: this.busy

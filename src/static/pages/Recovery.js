@@ -1,7 +1,9 @@
+var PasswordInput = PasswordInput || {}
+
 var Recovery = Recovery || {
     busy: false,
     password: '',
-    passwordSecondary: '',
+    password_secondary: '',
     errorMsg: '',
     successMsg: '',
     oninit() {
@@ -25,7 +27,7 @@ var Recovery = Recovery || {
 
         const formData = new FormData()
         formData.append('password', this.password)
-        formData.append('password_secondary', this.passwordSecondary)
+        formData.append('password_secondary', this.password_secondary)
         formData.append('recovery_code', new URLSearchParams(window.location.hash.split('?')[1]).get('recovery_code'))
         formData.append('challenge', challengeToken)
 
@@ -67,38 +69,14 @@ var Recovery = Recovery || {
                 ]) : null,
                 m('form', {onsubmit: e => this.onsubmit(e)}, [
                     m('fieldset', [
-                        m('.form__control', [
-                            m('label.form__input', t('New password'), [
-                                m('input', {
-                                    oninput: (e) => {this.password = e.target.value},
-                                    type: 'password',
-                                    placeholder: t('Min. 8 characters'),
-                                    autocomplete: 'password'
-                                }),
-                                
-                                (() => {
-                                    const strength = this.password.length / 32;
-                                    const thresholds = [0.25, 0.5, 0.75, 1];
-                                    const colors = thresholds.map(t => strength >= t ? 'green' : 'crust');
-                                    
-                                    const getMessage = () => {
-                                        if (strength < 0.25) return 'Add more characters';
-                                        if (strength < 0.5) return 'Your password could be stronger';
-                                        if (strength < 0.75) return 'Your password is good';
-                                        return 'Your password is great!';
-                                    };
-                                    
-                                    return [
-                                        m('.input__password-strength', colors.map(color => m('.strength-indicator', {style: {backgroundColor: `var(--${color})`}}))),
-                                        m('small', t(getMessage()))
-                                    ];
-                                })()
-                            ]),
-                        ]),
+                        m(PasswordInput, {
+                            title: 'New password',
+                            callback: e => {this.password = e.target.value}
+                        }),
                         m('.form__control', [
                             m('label.form__input', t('Confirm your password'), [
                                 m('input', {
-                                    oninput: (e) => {this.passwordSecondary = e.target.value},
+                                    oninput: (e) => {this.password_secondary = e.target.value},
                                     type: 'password',
                                     autocomplete: 'password'
                                 })

@@ -1,5 +1,20 @@
 var Integrations = Integrations || {
     didReset: false,
+    didCopy: false,
+    uploadKey: '',
+    oncreate() {
+        m.request({
+            method: 'GET',
+            url: '/files/integration?integration_type=other'
+        })
+        .then(response => {
+            this.uploadKey = response.upload_key
+            m.redraw()
+        })
+        .catch(error => {
+
+        })
+    },
     view() {
         return m('.settings', [
             m('hgroup', [
@@ -8,7 +23,21 @@ var Integrations = Integrations || {
             ]),
             m('.alert', [
                 m('p', {style: 'margin-top: 0'}, t('Resetting your key will invalidate all installed configurations, you will have to set-up your integrations again')),
+                m('input', {
+                    style: 'margin-bottom: 1rem',
+                    type: 'password',
+                    readonly: true,
+                    value: this.uploadKey
+                }),
                 m('.buttons', [
+                    m('button', {
+                        onclick: e => {
+                            navigator.clipboard.writeText(this.uploadKey)
+                            this.didCopy = true
+                        }
+                    }, this.didCopy ? '' : t('Copy'), [
+                        m('.material-symbols-rounded', this.didCopy ? 'check' : 'content_copy')
+                    ]),
                     m('button.red', {
                         onclick: e => {
                             if (this.didReset) {

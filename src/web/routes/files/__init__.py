@@ -226,7 +226,11 @@ def request_integration():
                     },
                     status=200
                 )
+            case _:
+                return jsonify({
+                    'upload_key': user_upload_key
+                }), 200
 
     return jsonify({
-        'error': 'Bad request' 
+        'error': 'Bad request'
     }), 401

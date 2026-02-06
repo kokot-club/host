@@ -15,6 +15,7 @@
     "Clear all fields": "Alle Felder löschen",
     "Close": "Schließen",
     "Copy URL": "URL kopieren",
+    "Copy": "Kopiuj",
     "Customize how social media platforms should render rich content of your uploads": "Passe an, wie soziale Medien die Inhalte deiner Uploads darstellen sollen",
     "Daily uploads": "Tägliche Uploads",
     "Dark": "dunkel",
@@ -108,8 +109,9 @@
     "Your password is good": "Twoje hasło jest dobre",
     "Your password is great!": "Twoje hasło jest świetne!",
     "Account settings": "Ustawienia konta",
-    "Further secure your account": "Ulepsz ochrone swojego konta",
+    "Further secure your account": "Ulepsz ochronę swojego konta",
     "Change Password": "Zmień Hasło",
+    "Change Username": "Zmień Nazwę Użytkownika",
     "Thank you for linking your Discord account!": "Dziękujemy za połączenie swojego konta Discord!",
     "Linked!": "Połączone!",
     "Unlink": "Odłącz",
@@ -130,9 +132,12 @@
     "Send": "Wyślij",
     "Important: You must link your Discord account and allow DMs from our server to receive the recovery link": "Ważne: Musisz połączyć swoje konto Discord, oraz dozwalać bezpośrednie wiadomości aby otrzymać link odzyskiwania",
     "New password": "Nowe hasło",
+    "New username": "Nowa nazwa użytkownika",
     "Confirm your password": "Potwierdź swoje hasło",
     "Change": "Zmień",
     "Account info": "Dane konta",
-    "Change your Username or Password": "Zmień Nazwe użytkownika lub Hasło",
-    "You are being ratelimited": "Wysyłasz za dużo żądań"
+    "Change your Username or Password": "Zmień Nazwę użytkownika lub Hasło",
+    "You are being ratelimited": "Wysyłasz za dużo żądań",
+    "Note: This action will log you out of your account": "Uwaga: Ta akcja wyloguje cię z twojego konta",
+    "Current password": "Twoje hasło"
 }

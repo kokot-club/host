@@ -98,26 +98,6 @@ class User:
             
         return False
 
-    def get_recovery_code(self):
-        with DB.get().cursor() as cursor:
-            cursor.execute(
-                'SELECT password_recovery_code, password_recovery_code_created_at FROM users WHERE id = ?',
-                (self.uid,)
-            )
-
-            result = cursor.fetchone()
-            if result and all(result):
-                password_recovery_code, password_recovery_code_created_at = result
-
-                # this code should only last 20 minutes
-                if datetime.strptime(password_recovery_code_created_at, '%Y-%m-%d %H:%M:%S') + timedelta(minutes=20) > datetime.now():
-                    return password_recovery_code
-                else:
-                    self.clear_recovery_code()
-                    return None
-            
-        return None
-
     def get_discord_link(self):
         with DB.get().cursor() as cursor:
             cursor.execute('SELECT linked_discord_id, linked_discord_username, linked_discord_headshot FROM users WHERE id = ?', (self.uid,))

@@ -56,7 +56,7 @@
                         Your browser does not support the audio tag.
                     </audio>
                 </div>
-            {% elif file.mimetype.startswith('text') %}
+            {% elif file.mimetype.startswith('text') and file.size_mb < 1.5 %}
                 <h1>{{ file.filename }}</h1>
                 <textarea class="file-page__text" id="text-preview" readonly></textarea>
                 <script>

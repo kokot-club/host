@@ -15,7 +15,7 @@ class File:
         self.uploaded_at = uploaded_at
 
     @staticmethod
-    def from_uri(uri):
+    def from_uri(uri) -> 'File':
         uri = uri.replace('.gif', '')
 
         with DB.get().cursor() as cursor:
@@ -32,7 +32,7 @@ class File:
                 return file
 
     @staticmethod
-    def upload(uploader, filename, uri, path, size_mb, mimetype, expires):
+    def upload(uploader, filename, uri, path, size_mb, mimetype, expires) -> 'File':
         uploader_id = uploader.uid
 
         with DB.get().cursor() as cursor:
@@ -44,7 +44,11 @@ class File:
             return File.from_uri(uri=uri)
 
     def delete(self):
-        os.remove(self.path)
+        try:
+            os.remove(self.path)
+        except FileNotFoundError:
+            print(f'Unable to delete from disk: {self.path}')
+        
         with DB.get().cursor() as cursor:
             cursor.execute(
                 'DELETE FROM files WHERE uri = ?',

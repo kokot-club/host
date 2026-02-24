@@ -15,7 +15,7 @@ class User:
         self.is_api = is_api
 
     @staticmethod
-    def create(username, password, role=UserRole.USER.value):
+    def create(username, password, role=UserRole.USER.value) -> 'User':
         password_hash = generate_password_hash(password)
 
         with DB.get().cursor() as cursor:
@@ -33,7 +33,7 @@ class User:
             return User.from_uid(new_user_id)
     
     @staticmethod
-    def get_all():
+    def get_all() -> list['User']:
         result = []
 
         with DB.get().cursor() as cursor:
@@ -44,7 +44,7 @@ class User:
         return result
     
     @staticmethod
-    def from_uid(uid):
+    def from_uid(uid) -> 'User':
         with DB.get().cursor() as cursor:
             cursor.execute(
                 'SELECT username, role FROM users WHERE id = ?',
@@ -207,7 +207,7 @@ class User:
             
         return None
 
-    def get_uploaded_files(self, query='%', max_files=9999999, offset=0):
+    def get_uploaded_files(self, query='%', max_files=9999999, offset=0) -> list[File]:
         result = []
 
         with DB.get().cursor() as cursor:
@@ -258,3 +258,31 @@ class User:
                 return result[0]
             
         return None
+    
+    def is_banned(self):
+        with DB.get().cursor() as cursor:
+            cursor.execute(
+                'SELECT banned FROM users WHERE id = ?',
+                (self.uid,)
+            )
+
+            result = cursor.fetchone()
+            if result and all(result):
+                return bool(result[0])
+
+        return False
+    
+    def set_banned(self, purge_uploads=False):
+        if self.is_banned():
+            return True
+        
+        with DB.get().cursor() as cursor:
+            cursor.execute('UPDATE users SET banned = 1 WHERE id = ?', (self.uid,))
+            if cursor.rowcount > 0:
+                if purge_uploads:
+                    for file in self.get_uploaded_files():
+                        file.delete()
+
+                return True
+            
+        return False

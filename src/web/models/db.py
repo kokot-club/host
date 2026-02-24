@@ -39,6 +39,7 @@ class DB:
             add_column_if_missing(cursor, 'users', 'linked_discord_id', 'INTEGER UNIQUE')
             add_column_if_missing(cursor, 'users', 'linked_discord_username', 'TEXT')
             add_column_if_missing(cursor, 'users', 'linked_discord_headshot', 'TEXT')
+            add_column_if_missing(cursor, 'users', 'banned', 'BOOL DEFAULT 0')
 
             # settings
             cursor.execute("CREATE TABLE IF NOT EXISTS settings (user_id INTEGER NOT NULL UNIQUE)")

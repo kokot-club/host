@@ -98,7 +98,7 @@ def file_delete():
     if not uri:
         return jsonify({
             'error': 'No URI provided'
-        }), 401
+        }), 400
 
     user = get_current_user()
     user_level = user.role
@@ -127,7 +127,7 @@ def file_edit():
     if not uri:
         return jsonify({
             'error': 'No URI provided'
-        }), 401
+        }), 400
 
     user = get_current_user()
     user_level = user.role
@@ -233,4 +233,4 @@ def request_integration():
 
     return jsonify({
         'error': 'Bad request'
-    }), 401
+    }), 400

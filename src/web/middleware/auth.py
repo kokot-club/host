@@ -61,8 +61,8 @@ def require_access(level: UserRole, api_keys=False):
         @wraps(func)
         def wrapper(*args, **kwargs):
             user = get_current_user()
-            if not user:
-                # invalid cookie
+            if not user or user.is_banned():
+                # invalid cookie or the user is banned
                 return clear_user_cookie(make_response(redirect('/'), 403))
 
             if (not user or user.role is None or user.role < level.value or (user.is_api and not api_keys)):

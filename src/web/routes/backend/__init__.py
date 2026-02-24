@@ -44,6 +44,12 @@ def user_login():
             return jsonify({
                 'error': 'User doesn\'t exist'
             }), 404
+        elif user.is_banned():
+            # user is banned
+
+            return jsonify({
+                'error': 'This user is banned'
+            }), 404
 
         if not user.password_matches_hash(password):
             # password doesnt match
@@ -532,3 +538,31 @@ def admin_list_users():
         })
     
     return jsonify(result), 200
+
+@bp_backend.route('/admin/ban_user', methods=['PATCH'])
+@require_access(level=UserRole.ADMIN)
+def admin_ban_user():
+    target_uid = request.json.get('uid')
+    if not target_uid:
+        return jsonify({
+            'error': 'No UID provided'
+        }), 400
+    
+    user = User.from_uid(target_uid)
+    if user or user.is_banned():
+        current_user = get_current_user()
+        if current_user.role <= user.role:
+            return jsonify({
+                'error': 'You may not ban users that have a higher or the same role'
+            }), 400
+
+        purge_uploads = request.json.get('purge_uploads', False)
+        user.set_banned(purge_uploads=purge_uploads)
+
+        return jsonify({
+            'msg': 'OK'
+        }), 200
+    else:
+        return jsonify({
+            'error': 'User was not found, or is already banned'
+        }), 404

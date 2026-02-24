@@ -87,25 +87,31 @@ var Admin = Admin || {
                 callback: [{ label: 'Select', fn: id => this.userId = id }]
             }),
             m('.buttons', [
-                m('button.red', 'Ban'),
-                m('button.red', 'Promote')
+                m('button.red', {
+                    onclick: () => {
+                        m.request({
+                            url: '/api/admin/ban_user',
+                            method: 'PATCH',
+                            body: {
+                                'uid': this.userId,
+                                'purge_uploads': true
+                            }
+                        }).then(data => {
+                            alert('Successfuly banned user')
+                        })
+                    }
+                }, 'Ban and purge uploads')
             ]),
 
             m('hgroup', [
                 m('h1', 'Files'),
-                m('p', 'Remove files, Alias files'),
+                m('p', 'Remove files'),
             ]),
             m('.grid', [
                 m('h3.setting__title', 'Subject upload ID'),
                 m('input', {
                     value: this.fileId,
                     onchange: e => this.fileId = e.target.value
-                }),
-            ]),
-            m('.grid', [
-                m('h3.setting__title', 'New upload ID'),
-                m('input', {
-                    
                 }),
             ]),
             m('.buttons', [
@@ -115,8 +121,7 @@ var Admin = Admin || {
                             alert('Successfuly removed')
                         })
                     }
-                }, 'Remove'),
-                m('button.secondary', 'Set new URI')
+                }, 'Remove')
             ]),
         ])
     }

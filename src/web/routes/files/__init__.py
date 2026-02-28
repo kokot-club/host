@@ -106,7 +106,7 @@ def file_delete():
 
     file = File.from_uri(uri)
     if file:
-        if file.owner_id != user_id or user_level < UserRole.ADMIN.value:
+        if file.owner_id != user_id and user_level < UserRole.ADMIN.value:
             return jsonify({
                 'error': 'You are not allowed to delete this file'
             }), 403

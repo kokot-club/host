@@ -172,10 +172,10 @@ var Login = Login || {
                             ]),
                         ]),
                         m('.form__control', [
-                            m('label.form__input', t('Password'), [
-                                !this.isLogin ? m(PasswordInput, {
-                                    callback: e => {this.password = e.target.value}
-                                }) : [
+                            !this.isLogin ? m(PasswordInput, {
+                                callback: e => {this.password = e.target.value}
+                            }) : [
+                                m('label.form__input', t('Password'), [
                                     m('input', {
                                         oninput: (e) => {this.password = e.target.value},
                                         type: 'password',
@@ -185,8 +185,8 @@ var Login = Login || {
                                     m('small.link', {
                                         onclick: e => {PasswordRecoveryModal.openModal()}
                                     }, t('Forgot your password?'))
-                                ]
-                            ]),
+                                ])
+                            ]
                         ]),
                         !this.isLogin ? [
                             m('.form__control', [

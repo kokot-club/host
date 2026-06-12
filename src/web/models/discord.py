@@ -10,19 +10,15 @@ class Discord:
     _api_base = 'https://discord.com/api/'
 
     @staticmethod
-    def _bot_headers(bot_token):
-        return {'Authorization': f'Bot {bot_token}'}
-
-    @staticmethod
-    def _bearer_headers(access_token):
-        return {'Authorization': f'Bearer {access_token}'}
-
-    @staticmethod
     def send_dm(discord_user_id, content='', embeds=[]):
         dm = requests.post(
             f'{Discord._api_base}/v10/users/@me/channels',
-            headers=Discord._bot_headers(bot_token=DISCORD_BOT_TOKEN),
-            json={'recipient_id': discord_user_id}
+            headers={
+                'Authorization': f'Bot {DISCORD_BOT_TOKEN}'
+            },
+            json={
+                'recipient_id': discord_user_id
+            }
         ).json()
 
         channel_id = dm.get('id') if dm else None
@@ -31,8 +27,13 @@ class Discord:
 
         requests.post(
             f'{Discord._api_base}/v10/channels/{channel_id}/messages',
-            headers=Discord._bot_headers(bot_token=DISCORD_BOT_TOKEN),
-            json={'content': content, 'embeds': embeds}
+            headers={
+                'Authorization': f'Bot {DISCORD_BOT_TOKEN}'
+            },
+            json={
+                'content': content,
+                'embeds': embeds
+            }
         )
         return True
 
@@ -53,12 +54,16 @@ class Discord:
     def get_user_info(access_token):
         return requests.get(
             f'{Discord._api_base}/users/@me',
-            headers=Discord._bearer_headers(access_token=access_token)
+            headers={
+                'Authorization': f'Bearer {access_token}'
+            }
         ).json()
 
     @staticmethod
     def add_user_to_guild(server_id, user_id, access_token):
         requests.put(
             f'{Discord._api_base}/guilds/{server_id}/members/{user_id}',
-            headers=Discord._bearer_headers(access_token=access_token)
+            headers={
+                'Authorization': f'Bearer {access_token}'
+            }
         )

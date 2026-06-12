@@ -18,68 +18,64 @@ class DB:
         self._conn = sqlite3.connect('db/instance.db', autocommit=True, check_same_thread=False)
 
     def run(self):
-        def add_column_if_missing(cursor, table, column, col_type):
-            cursor.execute(f'PRAGMA table_info("{table}")')
-            cols = [c[1] for c in cursor.fetchall()]
-            if column not in cols:
-                base_type = col_type.replace('UNIQUE', '').replace('NOT NULL', '').strip()
-                cursor.execute(f'ALTER TABLE {table} ADD COLUMN {column} {base_type}')
-                if 'UNIQUE' in col_type:
-                    cursor.execute(f'CREATE UNIQUE INDEX IF NOT EXISTS idx_{table}_{column} ON {table}({column})')
+        def attempt_query(cursor, query):
+            try:
+                cursor.execute(query)
+            except sqlite3.OperationalError: pass
 
         with self.cursor() as cursor:
             # users
             cursor.execute("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT)")
-            add_column_if_missing(cursor, 'users', 'join_date', 'DATE NOT NULL DEFAULT CURRENT_TIMESTAMP')
-            add_column_if_missing(cursor, 'users', 'username', 'TEXT NOT NULL UNIQUE')
-            add_column_if_missing(cursor, 'users', 'password', 'TEXT NOT NULL')
-            add_column_if_missing(cursor, 'users', 'role', 'INTEGER NOT NULL')
-            add_column_if_missing(cursor, 'users', 'api_key', 'TEXT UNIQUE')
-            add_column_if_missing(cursor, 'users', 'fixed_storage_mb', 'FLOAT')
-            add_column_if_missing(cursor, 'users', 'linked_discord_id', 'INTEGER UNIQUE')
-            add_column_if_missing(cursor, 'users', 'linked_discord_username', 'TEXT')
-            add_column_if_missing(cursor, 'users', 'linked_discord_headshot', 'TEXT')
-            add_column_if_missing(cursor, 'users', 'banned', 'BOOL DEFAULT 0')
+            attempt_query(cursor, "ALTER TABLE users ADD COLUMN join_date DATE NOT NULL DEFAULT CURRENT_TIMESTAMP")
+            attempt_query(cursor, "ALTER TABLE users ADD COLUMN username TEXT NOT NULL UNIQUE")
+            attempt_query(cursor, "ALTER TABLE users ADD COLUMN password TEXT NOT NULL")
+            attempt_query(cursor, "ALTER TABLE users ADD COLUMN role INTEGER NOT NULL")
+            attempt_query(cursor, "ALTER TABLE users ADD COLUMN api_key TEXT UNIQUE")
+            attempt_query(cursor, "ALTER TABLE users ADD COLUMN fixed_storage_mb FLOAT")
+            attempt_query(cursor, "ALTER TABLE users ADD COLUMN linked_discord_id INTEGER UNIQUE")
+            attempt_query(cursor, "ALTER TABLE users ADD COLUMN linked_discord_username TEXT")
+            attempt_query(cursor, "ALTER TABLE users ADD COLUMN linked_discord_headshot TEXT")
+            attempt_query(cursor, "ALTER TABLE users ADD COLUMN banned BOOL DEFAULT 0")
 
             # settings
             cursor.execute("CREATE TABLE IF NOT EXISTS settings (user_id INTEGER NOT NULL UNIQUE)")
-            add_column_if_missing(cursor, 'settings', 'external_css', 'TEXT DEFAULT ""')
-            add_column_if_missing(cursor, 'settings', 'anonymous', 'BOOL NOT NULL DEFAULT 0')
-            add_column_if_missing(cursor, 'settings', 'auto_expire', 'FLOAT NOT NULL DEFAULT 0')
-            add_column_if_missing(cursor, 'settings', 'embed_color', 'VARCHAR(7)')
-            add_column_if_missing(cursor, 'settings', 'embed_title', 'VARCHAR(40) DEFAULT ""')
-            add_column_if_missing(cursor, 'settings', 'embed_description', 'VARCHAR(200) DEFAULT ""')
-            add_column_if_missing(cursor, 'settings', 'embed_sitename', 'VARCHAR(200) DEFAULT ""')
-            add_column_if_missing(cursor, 'settings', 'embed_siteurl', 'VARCHAR(200) DEFAULT ""')
-            add_column_if_missing(cursor, 'settings', 'embed_authorname', 'VARCHAR(200) DEFAULT ""')
-            add_column_if_missing(cursor, 'settings', 'embed_authorurl', 'VARCHAR(200) DEFAULT ""')
+            attempt_query(cursor, "ALTER TABLE settings ADD COLUMN external_css TEXT DEFAULT ''")
+            attempt_query(cursor, "ALTER TABLE settings ADD COLUMN anonymous BOOL NOT NULL DEFAULT 0")
+            attempt_query(cursor, "ALTER TABLE settings ADD COLUMN auto_expire FLOAT NOT NULL DEFAULT 0")
+            attempt_query(cursor, "ALTER TABLE settings ADD COLUMN embed_color VARCHAR(7)")
+            attempt_query(cursor, "ALTER TABLE settings ADD COLUMN embed_title VARCHAR(40) DEFAULT ''")
+            attempt_query(cursor, "ALTER TABLE settings ADD COLUMN embed_description VARCHAR(200) DEFAULT ''")
+            attempt_query(cursor, "ALTER TABLE settings ADD COLUMN embed_sitename VARCHAR(200) DEFAULT ''")
+            attempt_query(cursor, "ALTER TABLE settings ADD COLUMN embed_siteurl VARCHAR(200) DEFAULT ''")
+            attempt_query(cursor, "ALTER TABLE settings ADD COLUMN embed_authorname VARCHAR(200) DEFAULT ''")
+            attempt_query(cursor, "ALTER TABLE settings ADD COLUMN embed_authorurl VARCHAR(200) DEFAULT ''")
 
             # invites
             cursor.execute("CREATE TABLE IF NOT EXISTS invites (hash TEXT PRIMARY KEY NOT NULL)")
-            add_column_if_missing(cursor, 'invites', 'role', 'INTEGER NOT NULL DEFAULT 0')
-            add_column_if_missing(cursor, 'invites', 'user_id', 'INTEGER UNIQUE')
+            attempt_query(cursor, "ALTER TABLE invites ADD COLUMN role INTEGER NOT NULL DEFAULT 0")
+            attempt_query(cursor, "ALTER TABLE invites ADD COLUMN user_id INTEGER UNIQUE")
 
             # files
             cursor.execute("CREATE TABLE IF NOT EXISTS files (id INTEGER PRIMARY KEY AUTOINCREMENT)")
-            add_column_if_missing(cursor, 'files', 'owner_id', 'INTEGER NOT NULL')
-            add_column_if_missing(cursor, 'files', 'uploaded_at', 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP')
-            add_column_if_missing(cursor, 'files', 'filename', 'VARCHAR(150) NOT NULL')
-            add_column_if_missing(cursor, 'files', 'path', 'TEXT NOT NULL')
-            add_column_if_missing(cursor, 'files', 'uri', 'TEXT NOT NULL')
-            add_column_if_missing(cursor, 'files', 'size_mb', 'FLOAT NOT NULL')
-            add_column_if_missing(cursor, 'files', 'mimetype', 'STRING NOT NULL')
-            add_column_if_missing(cursor, 'files', 'expires', 'DATETIME')
-            add_column_if_missing(cursor, 'files', 'views', 'INTEGER NOT NULL DEFAULT 0')
+            attempt_query(cursor, "ALTER TABLE files ADD COLUMN owner_id INTEGER NOT NULL")
+            attempt_query(cursor, "ALTER TABLE files ADD COLUMN uploaded_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP")
+            attempt_query(cursor, "ALTER TABLE files ADD COLUMN filename VARCHAR(150) NOT NULL")
+            attempt_query(cursor, "ALTER TABLE files ADD COLUMN path TEXT NOT NULL")
+            attempt_query(cursor, "ALTER TABLE files ADD COLUMN uri TEXT NOT NULL")
+            attempt_query(cursor, "ALTER TABLE files ADD COLUMN size_mb FLOAT NOT NULL")
+            attempt_query(cursor, "ALTER TABLE files ADD COLUMN mimetype STRING NOT NULL")
+            attempt_query(cursor, "ALTER TABLE files ADD COLUMN expires DATETIME")
+            attempt_query(cursor, "ALTER TABLE files ADD COLUMN views INTEGER NOT NULL DEFAULT 0")
 
             # folders
             cursor.execute("CREATE TABLE IF NOT EXISTS folders (id INTEGER PRIMARY KEY AUTOINCREMENT)")
-            add_column_if_missing(cursor, 'folders', 'name', 'TEXT NOT NULL')
+            attempt_query(cursor, "ALTER TABLE folders ADD COLUMN name TEXT NOT NULL")
 
             # insert initial invite if table empty
             cursor.execute('SELECT 1 FROM invites')
             if not cursor.fetchone():
                 invite = os.environ.get('SETUP_INVITE')
-                self._conn.execute('INSERT INTO invites (hash, role) VALUES (?, 2)', (invite,))
+                cursor.execute('INSERT INTO invites (hash, role) VALUES (?, 2)', (invite,))
 
     def connection(self):
         return self._conn

@@ -16,8 +16,6 @@ def verify_cloudflare_challenge(challenge_token):
         
         return False
     
-    # protection is off
-    print('Turnstile is off, skipping...')
     return True
 
 def get_real_ip():

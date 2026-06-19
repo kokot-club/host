@@ -4,7 +4,7 @@ var ErrorPage = ErrorPage || {}
 var Home = Home || {}
 var Dashboard = Dashboard || {}
 
-const isLoggedIn = document.cookie.split('; ').find(row => row.startsWith('auth='))
+const isLoggedIn = typeof IS_AUTHENTICATED !== 'undefined' && IS_AUTHENTICATED
 const hasRecoveryCode = new URLSearchParams(window.location.hash.split('?')[1]).get('recovery_code') != null
 
 m.route(document.body, '/', {

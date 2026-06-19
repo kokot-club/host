@@ -1,10 +1,9 @@
-import random
-from secrets import token_urlsafe
+from secrets import token_urlsafe, choice
 from string import ascii_lowercase, digits
 from web.utils.networking import get_real_host
 
 def random_string(length=7):
-    return ''.join(random.choices(ascii_lowercase + digits, k=length))
+    return ''.join(choice(ascii_lowercase + digits) for _ in range(length))
 
 def api_key(length=60):
     return token_urlsafe(length)

@@ -27,18 +27,18 @@ class DB:
             # users
             cursor.execute("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT)")
             attempt_query(cursor, "ALTER TABLE users ADD COLUMN join_date DATE NOT NULL DEFAULT CURRENT_TIMESTAMP")
-            attempt_query(cursor, "ALTER TABLE users ADD COLUMN username TEXT NOT NULL UNIQUE")
+            attempt_query(cursor, "ALTER TABLE users ADD COLUMN username TEXT NOT NULL")
             attempt_query(cursor, "ALTER TABLE users ADD COLUMN password TEXT NOT NULL")
             attempt_query(cursor, "ALTER TABLE users ADD COLUMN role INTEGER NOT NULL")
-            attempt_query(cursor, "ALTER TABLE users ADD COLUMN api_key TEXT UNIQUE")
+            attempt_query(cursor, "ALTER TABLE users ADD COLUMN api_key TEXT")
             attempt_query(cursor, "ALTER TABLE users ADD COLUMN fixed_storage_mb FLOAT")
-            attempt_query(cursor, "ALTER TABLE users ADD COLUMN linked_discord_id INTEGER UNIQUE")
+            attempt_query(cursor, "ALTER TABLE users ADD COLUMN linked_discord_id INTEGER")
             attempt_query(cursor, "ALTER TABLE users ADD COLUMN linked_discord_username TEXT")
             attempt_query(cursor, "ALTER TABLE users ADD COLUMN linked_discord_headshot TEXT")
             attempt_query(cursor, "ALTER TABLE users ADD COLUMN banned BOOL DEFAULT 0")
 
             # settings
-            cursor.execute("CREATE TABLE IF NOT EXISTS settings (user_id INTEGER NOT NULL UNIQUE)")
+            cursor.execute("CREATE TABLE IF NOT EXISTS settings (user_id INTEGER NOT NULL)")
             attempt_query(cursor, "ALTER TABLE settings ADD COLUMN external_css TEXT DEFAULT ''")
             attempt_query(cursor, "ALTER TABLE settings ADD COLUMN anonymous BOOL NOT NULL DEFAULT 0")
             attempt_query(cursor, "ALTER TABLE settings ADD COLUMN auto_expire FLOAT NOT NULL DEFAULT 0")
@@ -53,7 +53,7 @@ class DB:
             # invites
             cursor.execute("CREATE TABLE IF NOT EXISTS invites (hash TEXT PRIMARY KEY NOT NULL)")
             attempt_query(cursor, "ALTER TABLE invites ADD COLUMN role INTEGER NOT NULL DEFAULT 0")
-            attempt_query(cursor, "ALTER TABLE invites ADD COLUMN user_id INTEGER UNIQUE")
+            attempt_query(cursor, "ALTER TABLE invites ADD COLUMN user_id INTEGER")
 
             # files
             cursor.execute("CREATE TABLE IF NOT EXISTS files (id INTEGER PRIMARY KEY AUTOINCREMENT)")

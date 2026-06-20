@@ -14,11 +14,11 @@ if not SECRET:
 serializer = URLSafeSerializer(SECRET)
 
 def set_user_cookie(user_data, response): 
-    response.set_cookie('auth', serializer.dumps(user_data), httponly=False, secure=True, samesite='Lax', expires=datetime.now() + timedelta(days=30))
+    response.set_cookie('auth', serializer.dumps(user_data), httponly=True, secure=True, samesite='Lax', expires=datetime.now() + timedelta(days=30))
     return response
 
 def clear_user_cookie(response):
-    response.delete_cookie('auth', httponly=False, secure=True, samesite='Lax')
+    response.delete_cookie('auth', httponly=True, secure=True, samesite='Lax')
     return response
 
 def get_current_user() -> User | None:

@@ -17,7 +17,6 @@
     <script src="/static/components/Theme.js"></script>
 
     <script>
-        /* eslint-disable */
         const IS_AUTHENTICATED = {% if current_user and current_user.role >= 0 %}true{% else %}false{% endif %};
         {% if turnstile_site_key %}
             const CLOUDFLARE_TURNSTILE_SITE = "{{ turnstile_site_key }}";

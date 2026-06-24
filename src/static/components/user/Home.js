@@ -39,6 +39,9 @@ var Home = Home || {
                         x: {
                             grid: {
                                 color: chartCrust
+                            },
+                            ticks: {
+                                maxTicksLimit: 8
                             }
                         },
                         y: {
@@ -47,8 +50,8 @@ var Home = Home || {
                             },
                             beginAtZero: true,
                             ticks: {
-                                minSuggested: 10,
-                                stepSize: 20,
+                                minSuggested: 5,
+                                stepSize: 2,
                             }
                         }
                     },
@@ -84,6 +87,9 @@ var Home = Home || {
                         x: {
                             grid: {
                                 color: chartCrust
+                            },
+                            ticks: {
+                                maxTicksLimit: 8
                             }
                         },
                         y: {
@@ -94,7 +100,6 @@ var Home = Home || {
                             ticks: {
                                 minSuggested: 10,
                                 stepSize: 10,
-                                
                             }
                         }
                     },

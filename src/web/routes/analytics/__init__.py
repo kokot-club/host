@@ -9,7 +9,7 @@ bp_analytics = Blueprint('analytics', __name__, url_prefix='/analytics')
 
 @bp_analytics.route('/userbase_info')
 @require_access(level=UserRole.USER)
-def userbase_info(max_days=7):
+def userbase_info(max_days=120):
     result = {
         'latest_user': 'unknown',
         'latest_uid': 0,
@@ -56,7 +56,7 @@ def server_storage():
 
 @bp_analytics.route('/daily_uploads')
 @require_access(level=UserRole.USER)
-def uploads_daily(max_days=7):
+def uploads_daily(max_days=30):
     result = {
         'labels': [],
         'data': []
